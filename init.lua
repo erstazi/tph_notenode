@@ -64,8 +64,12 @@ local function register_instrument(name, tune, def)
     local octrange = def.octrange or {}
     -- lower range must be less than noteC's octave - or equal to cancel the creation of lower octaves
     octrange[1] = type(octrange[1]) == "number" and octrange[1] <= noteC.octave or noteC.octave - 3 -- 3
+    -- clamp above `middle octave - 10`
+    octrange[1] = octrange[1] ~= noteC.octave and (octrange[1] < noteC.octave - 10 and noteC.octave-10) or octrange[1]
     -- ditto to the above - higher range greater - or equal to cancel creation of higher octaves
     octrange[2] = type(octrange[2]) == "number" and octrange[2] >= noteC.octave or noteC.octave + 2 -- 2
+    -- clamp below `middle octave + 10`
+    octrange[2] = octrange[2] ~= noteC.octave and (octrange[2] > noteC.octave + 10 and noteC.octave+10) or octrange[2]
     -- fill the notes
     local notes = {}
     -- lower fill
