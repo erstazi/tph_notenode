@@ -176,12 +176,11 @@ end
 local function instrument_calculate_octave(instrument, octave, convert_to_raw)
     local instnotes = instrument.notes
     local octamt = #instnotes/12 -- octave amount -- how many octaves in instrument total
-    octave = math.min(octave, octamt) -- clamp below instrument octave amount
     -- converting instrumental octave into param2 octave
     if convert_to_raw then
         local octmin, octmax = instrument.octave_range[1], instrument.octave_range[2] -- min to max of range
-        if octave <= octmin then return 0 end -- give lowest raw octave
-        if octave >= octmax then return octamt end -- give highest raw octave
+        if octave < octmin then return 0 end -- give lowest raw octave
+        if octave > octmax then return octamt end -- give highest raw octave
         -- index will be the raw octave we want
         for ind,note in ipairs(instnotes) do
             if note.octave == octave then -- found our octave of choice
@@ -190,10 +189,15 @@ local function instrument_calculate_octave(instrument, octave, convert_to_raw)
         end
     -- converting param2 octave into instrumental octave
     else
+        octave = math.min(octave, octamt) -- clamp below instrument octave amount
         if octave == 0 then return instnotes[1].octave end -- octave of lowest note
-        if octave > (octamt-1) then return instnotes[#instnotes].octave end
-        octave = instnotes[(octave*12)+1].octave -- otherwise octave of interest will be at note `(octave*12)+1`
-        return octave
+        octave = octave*12
+        local note = instnotes[octave] -- otherwise octave of interest will be at note `octave*12`
+        if note and note.num%12 == 0 then
+            note = instnotes[octave+1]
+        end
+        if not note then return instnotes[#instnotes].octave end -- too high!
+        return note.octave
     end
 end
 
@@ -205,13 +209,12 @@ local function param2_to_note_octave(param2, instrument)
     local octaveraw = param2/12
     local octave = math.floor(octaveraw)
     local note = (octaveraw-octave)*12 -- percentage of 12
-    note = math.floor(note + 0.5) -- round
+    -- note would be 0 to 11, but is added 1 to be 1 to 12
+    note = math.floor(note + 0.5) + 1 -- round it too
     -- if instrument is not provided:
     -- octave will be param2 converted into a positive integer
     -- you will have to calculate what this means with your instrument
-
-    -- note would be 0 to 11, but is added 1 to be 1 to 12
-    return note+1, instrument and instrument_calculate_octave(instrument, octave) or octave
+    return note, instrument and instrument_calculate_octave(instrument, octave) or octave
 end
 
 -- instrument data, note data
@@ -290,7 +293,7 @@ local nbdef = { -- notenode definition
         note = note or get_refined_note_from_param2(node.param2, instrument)
         if not note then return end
         -- play and particle
-        core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
+        --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
         core.sound_play(instrument.sound, {
             max_hear_distance = 48, pitch = note.val, pos = pos
         })
@@ -319,7 +322,6 @@ local nbdef = { -- notenode definition
             local note = get_refined_note(rawnote, octave, instrument)
             -- update param2 and swap the node
             node.param2 = note_octave_to_param2(instrument, note)
-            core.log(node.param2)
             -- play
             ndef.notenode_play_instrument(pos, node, instrument, note, clicker)
             core.swap_node(pos, node)
