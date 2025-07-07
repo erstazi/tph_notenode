@@ -262,6 +262,7 @@ local nbdef = { -- notenode definition
     groups = {dig_immediate=2},
     drawtype = "normal",
     paramtype = "light",
+    sounds = {dig = {name=""}},
     -- sets param2
     on_construct = function(pos)
         local node = core.get_node(pos)
@@ -314,9 +315,15 @@ local nbdef = { -- notenode definition
         if addparam2 ~= 0 then
             node.param2 = node.param2 + addparam2
             -- clamp between 0 and 251
-            node.param2 = math.min(math.max(node.param2,0), 251)
+            --node.param2 = math.min(math.max(node.param2,0), 251)
             -- get instrument + rawnote + octave
             local instrument = ndef.notenode_get_instrument(pos, node)
+            -- clamp param2 between instrument parameters
+            if node.param2 < 0 then
+                node.param2 = #instrument.notes
+            elseif node.param2 > #instrument.notes then
+                node.param2 = 0
+            end
             local rawnote, octave = param2_to_note_octave(node.param2, instrument)
             -- get note for playing
             local note = get_refined_note(rawnote, octave, instrument)
