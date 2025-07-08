@@ -118,6 +118,8 @@ end
 register_instrument(nil, 259.459, "tph_notenode_donk") -- base instrument
 register_instrument(nil, nil, "tph_notenode_klalk")
 register_instrument(nil, nil, "tph_notenode_couke")
+register_instrument(nil, nil, "tph_notenode_dwoite")
+register_instrument(nil, nil, "tph_notenode_bvogne")
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
@@ -137,6 +139,13 @@ end
 local function get_instrument_from_below(pos, node, ndef)
     node = node or core.get_node(pos)
     ndef = ndef or core.registered_nodes[node.name]
+    local groups = ndef.groups or {}
+    if ndef.name:match("tin") then
+        return instruments.dwoite
+    end
+    if groups.tree then
+        return instruments.bvogne
+    end
     if ndef.sounds then
         local sound = next(ndef.sounds)
         sound = ndef.sounds[sound]
