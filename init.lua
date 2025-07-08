@@ -116,6 +116,8 @@ end
 -- name can be nil and grabbed from sound, tune can be nil as it defaults to the 1939 tuning standard
 -- sound can be a definition table, if so, must have {sound=sound_name}
 register_instrument(nil, 259.459, "tph_notenode_donk") -- base instrument
+register_instrument(nil, nil, "tph_notenode_klalk")
+register_instrument(nil, nil, "tph_notenode_couke")
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
@@ -126,6 +128,30 @@ local chords = {
     whole = {"C", "D", "E", "F", "G", "A", "B"},
     tetris = {"A", "B", "C", "D", "E", "F"},
 }
+
+local function default_instrument()
+    return instruments.donk
+end
+
+-- pos, node, and ndef must be what is BELOW the note node
+local function get_instrument_from_below(pos, node, ndef)
+    node = node or core.get_node(pos)
+    ndef = ndef or core.registered_nodes[node.name]
+    if ndef.sounds then
+        local sound = next(ndef.sounds)
+        sound = ndef.sounds[sound]
+        if not (sound and sound.name) then return default_instrument() end
+        -- metallic
+        if sound.name:match("metal") then
+            return instruments.couke
+        -- glassy
+        elseif sound.name:match("glass") then
+            return instruments.klalk
+        end
+    end
+    -- universal instrument
+    return default_instrument()
+end
 
 --
 -- spawns a little eighth note above the notenode
@@ -274,17 +300,15 @@ local nbdef = { -- notenode definition
     end,
     -- pos, node, below node
     notenode_get_instrument = function(pos, node, bnode)
-        --[[
         -- ourselves
-        node = node or core.get_node(pos)
-        local ndef = core.registered_nodes[node.name]
+        --node = node or core.get_node(pos)
+        --local ndef = core.registered_nodes[node.name]
         -- below
         local bpos = table.copy(pos)
         bpos.y = bpos.y - 1
         bnode = bnode or core.get_node(bpos)
         -- return instrument corresponding to below node
-        --]]
-        return instruments.donk -- only 1 instrument
+        return get_instrument_from_below(bpos, bnode)
     end,
     notenode_play_instrument = function(pos, node, instrument, note, player)
         node = node or core.get_node(pos)
