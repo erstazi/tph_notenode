@@ -344,8 +344,8 @@ local nbdef = { -- notenode definition
             local instrument = ndef.notenode_get_instrument(pos, node)
             -- clamp param2 between instrument parameters
             if node.param2 < 0 then
-                node.param2 = #instrument.notes
-            elseif node.param2 > #instrument.notes then
+                node.param2 = #instrument.notes+11
+            elseif node.param2 >= #instrument.notes then
                 node.param2 = 0
             end
             local rawnote, octave = param2_to_note_octave(node.param2, instrument)
