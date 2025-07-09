@@ -120,6 +120,9 @@ register_instrument(nil, nil, "tph_notenode_klalk")
 register_instrument(nil, nil, "tph_notenode_couke")
 register_instrument(nil, nil, "tph_notenode_dwoite")
 register_instrument(nil, nil, "tph_notenode_bvogne")
+register_instrument(nil, nil, "tph_notenode_blipck")
+register_instrument(nil, nil, "tph_notenode_ghlick")
+register_instrument(nil, nil, "tph_notenode_llorlk")
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
@@ -145,6 +148,12 @@ local function get_instrument_from_below(pos, node, ndef)
     end
     if groups.tree then
         return instruments.bvogne
+    elseif groups.stone then
+        return instruments.blipck
+    elseif groups.sapling then
+        return instruments.ghlick
+    elseif groups.water then
+        return instruments.llorlk
     end
     if ndef.sounds then
         local sound = next(ndef.sounds)
