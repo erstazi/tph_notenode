@@ -358,11 +358,13 @@ local nbdef = { -- notenode definition
         local ndef = core.registered_nodes[node.name]
         -- where the node was clicked
         local face = (pointed_thing.above + pointed_thing.under)/2
-        -- check if we should lower notes or not
-        local xequal,zequal = math.ceil(face.x) == face.x, math.ceil(face.z) == face.z
-        -- xequal == treble, zequal == bass
-        local addparam2 = not (xequal and zequal) and (xequal and 1 or zequal and -1) or 0
-        if addparam2 ~= 0 then
+        -- check if we should decrease or increase the pitch of notes, or not
+        local staff = ( face.x == (pos.x - 0.5) or face.z == (pos.z - 0.5) ) and "treble" or
+          ( face.x == (pos.x + 0.5) or face.z == (pos.z + 0.5) ) and "bass"
+        -- ditto
+        local addparam2 = (staff == "bass" or staff == "treble") and
+          (staff == "treble" and 1 or staff == "bass" and -1)
+        if addparam2 then
             node.param2 = node.param2 + addparam2
             -- clamp between 0 and 251
             --node.param2 = math.min(math.max(node.param2,0), 251)
@@ -430,8 +432,8 @@ nbdef.tiles = {}
 for i=1,6 do
     local tile = "tph_notenode.png"
     tile = i ~= 2 and tile.."^"..(i == 1 and "tph_notenode_waveform.png" or
-      i > 4 and "tph_notenode_treble.png" or
-      i > 2 and "tph_notenode_bass.png") or tile
+      i%2 == 0 and "tph_notenode_treble.png" or
+      i%2 == 1 and "tph_notenode_bass.png") or tile
     nbdef.tiles[i] = tile
 end
 
