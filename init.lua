@@ -142,12 +142,10 @@ local chords = {
     tetris = {"A", "B", "C", "D", "E", "F"},
 }
 
-local function default_instrument()
-    return instruments.donk
-end
+local default_instrument = "donk"
 
 -- pos, node, and ndef must be what is BELOW the note node
-local function get_instrument_from_below(pos, node, ndef)
+local function get_instrument_raw(pos, node, ndef)
     node = node or core.get_node(pos)
     ndef = ndef or core.registered_nodes[node.name]
     local groups = ndef.groups or {}
@@ -166,7 +164,7 @@ local function get_instrument_from_below(pos, node, ndef)
     if ndef.sounds then
         local sound = next(ndef.sounds)
         sound = ndef.sounds[sound]
-        if not (sound and sound.name) then return default_instrument() end
+        if not (sound and sound.name) then return end
         -- metallic
         if sound.name:match("metal") then
             return instruments.couke
@@ -175,8 +173,21 @@ local function get_instrument_from_below(pos, node, ndef)
             return instruments.klalk
         end
     end
-    -- universal instrument
-    return default_instrument()
+end
+
+-- ditto to the above function, except this returns a default instrument on failure
+local function get_instrument(pos, node, ndef)
+    local inst = get_instrument_raw(pos, node, ndef)
+    if not inst then
+        -- get default instrument
+        inst = instruments[default_instrument]
+        -- add a new default instrument in case of failure
+        if not inst then
+            default_instrument = next(instruments)
+            inst = instruments[default_instrument]
+        end
+    end
+    return inst
 end
 
 --
@@ -334,7 +345,7 @@ local nbdef = { -- notenode definition
         bpos.y = bpos.y - 1
         bnode = bnode or core.get_node(bpos)
         -- return instrument corresponding to below node
-        return get_instrument_from_below(bpos, bnode)
+        return get_instrument(bpos, bnode)
     end,
     notenode_play_instrument = function(pos, node, instrument, note, player)
         node = node or core.get_node(pos)
