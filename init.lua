@@ -21,9 +21,10 @@ local instruments = {}
 
 -- register an instrument
 -- name can be nil as it can be derived from sound file's name minus the mod's name
--- tune is the hertz of middle C (aka your sound file which SHOULD BE TUNED to C!)
 -- def can be the sound file string, otherwise must be a table with `sound` as an index
-local function register_instrument(name, tune, def)
+-- tune is the hertz of middle C (aka your sound file which SHOULD BE TUNED to C!)
+-- gain is the volume of the instrument
+local function register_instrument(name, def, tune, gain)
     name = type(name) == "string" and name or "unknown"
     -- basic definition (requires sound)
     def = type(def) == "string" and {sound=def} or type(def) == "table" and def
@@ -38,6 +39,9 @@ local function register_instrument(name, tune, def)
     if instruments[name] then
         error("tph_notenode: '"..name.."' is an already registered instrument! Please name your instrument something else.")
     end
+    -- volume
+    gain = type(gain) == "number" and gain > 0 and gain or 1
+    def.gain = gain
     -- tune! be sure you properly tune it to be C!
     tune = type(tune) == "number" and (tune > 0 and tune) or 261.6256
     -- create noteC (middle C note)
@@ -116,21 +120,21 @@ end
 -- name can be nil and grabbed from sound, tune can be nil as it defaults to the 1939 tuning standard
 -- sound can be a definition table, if so, must have {sound=sound_name}
 -- simple bling-like synthy sound, springy (made from a spring inside of a mouse)
-register_instrument(nil, 259.459, "tph_notenode_donk") -- base instrument
+register_instrument(nil, "tph_notenode_donk", 259.459) -- base instrument
 -- clacky kinda sound (made from scratching a plastic battery pack)
-register_instrument(nil, nil, "tph_notenode_klalk")
+register_instrument(nil, "tph_notenode_klalk")
 -- metallic-ish sound (made from hitting a metal pole)
-register_instrument(nil, nil, "tph_notenode_couke")
+register_instrument(nil, "tph_notenode_couke")
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
-register_instrument(nil, nil, "tph_notenode_dwoite")
+register_instrument(nil, "tph_notenode_dwoite")
 -- wobbly bassy song (made from playing a spread-out shoelace)
-register_instrument(nil, nil, "tph_notenode_bvogne")
+register_instrument(nil, "tph_notenode_bvogne")
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, nil, "tph_notenode_blipck")
+register_instrument(nil, "tph_notenode_blipck")
 -- bamboo-y (hit actual bamboo)
-register_instrument(nil, nil, "tph_notenode_ghlick")
+register_instrument(nil, "tph_notenode_ghlick")
 -- watery (made from moving around in a bathtub of water)
-register_instrument(nil, nil, "tph_notenode_llorlk")
+register_instrument(nil, "tph_notenode_llorlk")
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
@@ -357,7 +361,7 @@ local nbdef = { -- notenode definition
         -- play and particle
         --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
         core.sound_play(instrument.sound, {
-            max_hear_distance = 48, pitch = note.val, pos = pos
+            max_hear_distance = 48, pitch = note.val, pos = pos, gain = instrument.gain
         })
         noteparticle(pos, note, instrument)
     end,
