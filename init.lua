@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 --]]
 
 
--- use calculating function progressively via multiplication `2^(1/12)`
+-- notes 1 to 12
 local notenames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
 -- for use by noteparticle function
 local notecolours = {"#ff0000","#ff8000","#ffff00","#80ff00","#00ff00","#00ff80","#00ffff", -- C - F
@@ -55,11 +55,11 @@ local function register_instrument(name, def, tune, gain)
     local basenotes = {}
     basenotes[1] = table.copy(noteC)
     -- calculate each note in scale
-    for i=1,11 do
+    for i=2,12 do
         local name = notenames[i]
         -- hertz calculation is middle C * 2^(semitone/12)
         -- https://en.wikipedia.org/wiki/Musical_note#Pitch_frequency_in_hertz
-        local info = {hertz = noteC.hertz * 2^(i/12), octave=noteC.octave, name=name, num = i+1}
+        local info = {hertz = noteC.hertz * 2^(i/12), octave=noteC.octave, name=name, num = i}
         info.val = info.hertz/noteC.hertz
         basenotes[#basenotes + 1] = info -- add to list
     end
