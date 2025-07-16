@@ -59,7 +59,7 @@ local function register_instrument(name, def, tune, gain)
         local name = notenames[i]
         -- hertz calculation is middle C * 2^(semitone/12)
         -- https://en.wikipedia.org/wiki/Musical_note#Pitch_frequency_in_hertz
-        local info = {hertz = noteC.hertz * 2^(i/12), octave=noteC.octave, name=name, num = i}
+        local info = {hertz = noteC.hertz * 2^((i-1)/12), octave=noteC.octave, name=name, num = i}
         info.val = info.hertz/noteC.hertz
         basenotes[#basenotes + 1] = info -- add to list
     end
