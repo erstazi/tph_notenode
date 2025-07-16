@@ -452,5 +452,24 @@ for i=1,6 do
     nbdef.tiles[i] = tile
 end
 
+-- mod support
+
+local depends = {
+    mesecons = core.get_modpath("mesecons")
+}
+-- mesecons
+if depends.mesecons then
+    nbdef.mesecons = {
+        effector = {
+            action_on = function(pos, node)
+                local ndef = node and core.registered_nodes[node.name]
+                if ndef and ndef.notenode_play_instrument then
+                    ndef.notenode_play_instrument(pos, node)
+                end
+            end
+        }
+    }
+end
+
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
