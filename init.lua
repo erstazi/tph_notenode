@@ -445,8 +445,9 @@ local nbdef = { -- notenode definition
 -- create tiles
 nbdef.tiles = {}
 for i=1,6 do
-    local tile = "tph_notenode.png"
+    local tile = "tph_notenode.png^tph_notenode_crest.png"
     tile = i ~= 2 and tile.."^"..(i == 1 and "tph_notenode_waveform.png" or
+      -- even is treble (higher), odd is bass (lower)
       i%2 == 0 and "tph_notenode_treble.png" or
       i%2 == 1 and "tph_notenode_bass.png") or tile
     nbdef.tiles[i] = tile
