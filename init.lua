@@ -458,7 +458,8 @@ end
 -- mod support
 
 local depends = {
-    mesecons = core.get_modpath("mesecons")
+    mesecons = core.get_modpath("mesecons"),
+    voxelibre = core.get_modpath("mcl_core")
 }
 -- mesecons
 if depends.mesecons then
@@ -473,8 +474,26 @@ if depends.mesecons then
             end
         }
     }
-    -- transmits power beyond our node
-    nbdef.groups.opaque = 1
+    if depends.voxelibre then
+        -- transmits power beyond our node
+        nbdef.groups.opaque = 1
+    end
+end
+
+-- mineclonia support
+if depends.mineclonia then
+    nbdef._mcl_redstone = {
+        connects_to = function(pos, dir)
+            return true
+        end,
+        update = function(pos, node)
+            if mcl_redstone.get_power(pos) == 0 then return end -- no power
+            local ndef = node and core.registered_nodes[node.name]
+            if ndef and ndef.notenode_play_instrument then
+                ndef.notenode_play_instrument(pos, node)
+            end
+        end
+    }
 end
 
 -- register notenode
