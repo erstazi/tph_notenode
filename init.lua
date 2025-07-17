@@ -370,6 +370,8 @@ local nbdef = { -- notenode definition
         ndef.notenode_play_instrument(pos, node)
     end,
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+        -- some games do really weird stuff and don't properly send over a pointed_thing, return
+        if not (pointed_thing and pointed_thing.type == "node") then return end
         local ndef = core.registered_nodes[node.name]
         -- where the node was clicked
         local face = (pointed_thing.above + pointed_thing.under)/2
@@ -462,6 +464,7 @@ local depends = {
 if depends.mesecons then
     nbdef.mesecons = {
         effector = {
+            rules = mesecon.rules.alldirs,
             action_on = function(pos, node)
                 local ndef = node and core.registered_nodes[node.name]
                 if ndef and ndef.notenode_play_instrument then
@@ -470,6 +473,8 @@ if depends.mesecons then
             end
         }
     }
+    -- transmits power beyond our node
+    nbdef.groups.opaque = 1
 end
 
 -- register notenode
