@@ -502,5 +502,43 @@ if depends.mineclonia then
     }
 end
 
+-- nodecore support
+if depends.nodecore then
+    local facedirs = {
+        vector.new(1,0,0),
+        vector.new(-1,0,0),
+        vector.new(0,0,1),
+        vector.new(0,0,-1)
+    }
+    local activated = {} -- nodes that have been activated
+    nbdef.optic_check = function(pos, node, recv)
+        local lit -- whether or not we have an optic light shone upon us
+        for _,fdir in ipairs(facedirs) do
+            lit = recv(fdir)
+            if lit then break end -- end loop
+        end
+        -- get an ID to store into or check activated
+        local posid = core.hash_node_position(pos)
+        local ctime = nodecore.gametime -- get time too
+        -- not powered
+        if not lit then
+            -- remove our time from activation table
+            if activated[posid] then
+                activated[posid] = nil
+            end
+            return
+        -- powered actually, check time
+        elseif type(activated[posid]) == "number" then
+            -- if the last time we played within 0.3 seconds from now then return
+            if (ctime - activated[posid]) < 0.3 then return end
+        end
+        -- play and add our time to activated table
+        activated[posid] = ctime
+        nbdef.notenode_play_instrument(pos, node)
+    end
+    nbdef.groups.snappy = 1 -- digging properly
+    nbdef.groups.optic_check = 1 -- for optic checking
+end
+
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
