@@ -165,10 +165,15 @@ local function get_instrument_raw(pos, node, ndef)
     elseif groups.water then
         return instruments.llorlk
     end
-    if ndef.sounds then
-        local sound = next(ndef.sounds)
-        sound = ndef.sounds[sound]
-        if not (sound and sound.name) then return end
+    if type(ndef.sounds) == "table" then
+        local sound
+        for _,data in pairs(ndef.sounds) do
+            if type(data) == "table" and data.name then
+                sound = data
+                break
+            end
+        end
+        if not sound then return end
         -- metallic
         if sound.name:match("metal") then
             return instruments.couke
@@ -330,6 +335,7 @@ local nbdef = { -- notenode definition
     drawtype = "normal",
     paramtype = "light",
     sounds = {dig = {name=""}},
+    mapcolor = {r=129, g=52, b=16},
     -- sets param2
     on_construct = function(pos)
         local node = core.get_node(pos)
