@@ -245,6 +245,8 @@ local function noteparticle(pos, note, instrument)
     })
 end
 
+-- instrument (e.g. from registered_instruments)
+-- octave (param2 `rawoctave` or if `convert_to_raw` is true, convert refined note octave to param2)
 local function instrument_calculate_octave(instrument, octave, convert_to_raw)
     local instnotes = instrument.notes
     local octamt = #instnotes/12 -- octave amount -- how many octaves in instrument total
@@ -252,7 +254,7 @@ local function instrument_calculate_octave(instrument, octave, convert_to_raw)
     if convert_to_raw then
         local octmin, octmax = instrument.octave_range[1], instrument.octave_range[2] -- min to max of range
         if octave < octmin then return 0 end -- give lowest raw octave
-        if octave > octmax then return octamt end -- give highest raw octave
+        if octave > octmax then return math.floor(#instnotes/12) end -- give highest raw octave
         -- index will be the raw octave we want
         for ind,note in ipairs(instnotes) do
             if note.octave == octave then -- found our octave of choice
