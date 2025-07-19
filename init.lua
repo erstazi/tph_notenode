@@ -342,7 +342,8 @@ local nbdef = { -- notenode definition
         local ndef = core.registered_nodes[node.name]
         -- get instrument to adequately get appropriate param2
         local instrument = ndef.notenode_get_instrument(pos, node)
-        node.param2 = note_octave_to_param2(instrument, {num=1, octave=1})
+        local basenote = instrument.basenotes[1]
+        node.param2 = note_octave_to_param2(instrument, basenote)
         core.swap_node(pos, node)
     end,
     -- pos, node, below node
@@ -408,6 +409,43 @@ local nbdef = { -- notenode definition
             ndef.notenode_play_instrument(pos, node, instrument, note, clicker)
             core.swap_node(pos, node)
         end
+    end,
+    -- save param2 if it's different from middle C
+    preserve_metadata = function(pos, oldnode, oldmeta, drops)
+        -- no node data or param2
+        if not (type(oldnode) == "table" and oldnode.param2) then return end
+        -- itemstack?
+        local stack = type(drops) == "table" and type(drops[1]) == "userdata" and drops[1]
+        if not (stack and stack.get_meta) then return end -- no itemstack or get_meta function
+        -- check if we should save this even (if param2 does NOT equal middle C)
+        do
+            -- get instrument to adequately get appropriate param2
+            local ndef = core.registered_nodes[oldnode.name]
+            local instrument = ndef.notenode_get_instrument(pos, oldnode)
+            -- calculate baseparam2 from basenote
+            local basenote = instrument.basenotes[1]
+            local baseparam2 = note_octave_to_param2(instrument, basenote)
+            -- don't save this, equals middle C's param2 conversion
+            if oldnode.param2 == baseparam2 then return end
+        end
+        -- get item's meta now
+        local imeta = stack:get_meta()
+        if not imeta then return end -- failed to get meta
+        -- save as int
+        -- add by 1 to ensure it's not equal to a nil get_int() - 0
+        imeta:set_int("param2", oldnode.param2+1)
+    end,
+    after_place_node = function(pos, placer, itemstack, pointed_thing)
+        -- get the metas
+        local imeta = type(itemstack) == "userdata" and itemstack.get_meta and itemstack:get_meta()
+        if not imeta then return end
+        -- transfer param2 from item meta if not 0
+        local param2 = imeta:get_int("param2")
+        if param2 == 0 then return end
+        local node = core.get_node(pos)
+        -- subtracted as explained above
+        node.param2 = param2-1
+        core.swap_node(pos, node)
     end,
     --[[
     on_punch = function(pos, node, puncher, pointed_thing)
