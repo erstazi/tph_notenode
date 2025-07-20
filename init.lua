@@ -508,7 +508,8 @@ end
 
 local depends = {
     mesecons = core.get_modpath("mesecons"),
-    voxelibre = core.get_modpath("mcl_core")
+    voxelibre = core.get_modpath("mcl_core"),
+    nodecore = core.get_modpath("nc_optics")
 }
 -- mesecons
 if depends.mesecons then
