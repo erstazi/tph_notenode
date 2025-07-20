@@ -420,19 +420,22 @@ local nbdef = { -- notenode definition
         local stack = type(drops) == "table" and type(drops[1]) == "userdata" and drops[1]
         if not (stack and stack.get_meta) then return end -- no itemstack or get_meta function
         -- check if we should save this even (if param2 does NOT equal middle C)
-        do
-            -- get instrument to adequately get appropriate param2
-            local ndef = core.registered_nodes[oldnode.name]
-            local instrument = ndef.notenode_get_instrument(pos, oldnode)
-            -- calculate baseparam2 from basenote
-            local basenote = instrument.basenotes[1]
-            local baseparam2 = note_octave_to_param2(instrument, basenote)
-            -- don't save this, equals middle C's param2 conversion
-            if oldnode.param2 == baseparam2 then return end
-        end
+        -- get instrument to adequately get appropriate param2
+        local ndef = core.registered_nodes[oldnode.name]
+        local instrument = ndef.notenode_get_instrument(pos, oldnode)
+        -- calculate baseparam2 from basenote
+        local basenote = instrument.basenotes[1]
+        local baseparam2 = note_octave_to_param2(instrument, basenote)
+        -- don't save this, equals middle C's param2 conversion
+        if oldnode.param2 == baseparam2 then return end
         -- get item's meta now
         local imeta = stack:get_meta()
         if not imeta then return end -- failed to get meta
+        -- add notename to description
+        local cnote = instrument.notes[oldnode.param2+1] -- current note
+        if (cnote and cnote.name ~= "C") then
+            imeta:set_string("description", stack:get_description().." "..cnote.name)
+        end
         -- save as int
         -- add by 1 to ensure it's not equal to a nil get_int() - 0
         imeta:set_int("param2", oldnode.param2+1)
