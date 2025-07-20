@@ -145,6 +145,8 @@ register_instrument(nil, "tph_notenode_blipck")
 register_instrument(nil, "tph_notenode_ghlick")
 -- watery (made from moving around in a bathtub of water)
 register_instrument(nil, "tph_notenode_llorlk")
+-- air-y (made from blowing into a glass bottle, 2x pitch)
+register_instrument(nil, "tph_notenode_oouve")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell", 
@@ -171,8 +173,10 @@ local function get_instrument_raw(pos, node, ndef)
     node = node or core.get_node(pos)
     ndef = ndef or core.registered_nodes[node.name]
     local groups = ndef.groups or {}
-    if ndef.name:match("tin") then
+    if ndef.groups.tin or ndef.name:match("tin") then
         return instruments.dwoite
+    elseif ndef.name:match("clay") then
+        return instruments.oouve
     end
     if groups.tree then
         return instruments.bvogne
@@ -182,6 +186,12 @@ local function get_instrument_raw(pos, node, ndef)
         return instruments.ghlick
     elseif groups.water then
         return instruments.llorlk
+    elseif groups.clay then
+        return instruments.oouve
+    elseif groups.metal then
+        return instruments.couke
+    elseif groups.glass then
+        return instruments.klalk
     end
     if depends.ncbells and ndef.mod_origin == "ncbells" then
         return instruments.ncbell
