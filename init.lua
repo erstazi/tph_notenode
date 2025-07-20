@@ -338,6 +338,7 @@ local nbdef = { -- notenode definition
     paramtype = "light",
     sounds = {dig = {name=""}},
     mapcolor = {r=129, g=52, b=16},
+    is_ground_content = false,
     -- sets param2
     on_construct = function(pos)
         local node = core.get_node(pos)
@@ -379,6 +380,11 @@ local nbdef = { -- notenode definition
         ndef.notenode_play_instrument(pos, node)
     end,
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+        -- protection check
+        if core.is_player(clicker) then
+            -- protected, return
+            if core.is_protected(pos, clicker:get_player_name()) then return end
+        end
         -- some games do really weird stuff and don't properly send over a pointed_thing, return
         if not (pointed_thing and pointed_thing.type == "node") then return end
         local ndef = core.registered_nodes[node.name]
