@@ -10,6 +10,14 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
+-- mod support
+local depends = {
+    mesecons = core.get_modpath("mesecons"),
+    voxelibre = core.get_modpath("mcl_core"),
+    nodecore = core.get_modpath("nc_optics"),
+    ncbells = core.get_modpath("ncbells") -- nodecore bells
+}
+
 
 -- notes 1 to 12
 local notenames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"}
@@ -135,6 +143,10 @@ register_instrument(nil, "tph_notenode_blipck")
 register_instrument(nil, "tph_notenode_ghlick")
 -- watery (made from moving around in a bathtub of water)
 register_instrument(nil, "tph_notenode_llorlk")
+-- mod-specific instruments
+if depends.ncbells then
+    register_instrument("ncbell", "ncbells_ding")
+end
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
@@ -164,6 +176,9 @@ local function get_instrument_raw(pos, node, ndef)
         return instruments.ghlick
     elseif groups.water then
         return instruments.llorlk
+    end
+    if depends.ncbells and ndef.mod_origin == "ncbells" then
+        return instruments.ncbell
     end
     if type(ndef.sounds) == "table" then
         local sound
@@ -510,13 +525,7 @@ for i=1,6 do
     nbdef.tiles[i] = tile
 end
 
--- mod support
-
-local depends = {
-    mesecons = core.get_modpath("mesecons"),
-    voxelibre = core.get_modpath("mcl_core"),
-    nodecore = core.get_modpath("nc_optics")
-}
+-- mod functionality support
 -- mesecons
 if depends.mesecons then
     nbdef.mesecons = {
