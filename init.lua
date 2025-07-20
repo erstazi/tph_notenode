@@ -73,15 +73,17 @@ local function register_instrument(name, def, tune, gain)
     end
     def.basenotes = basenotes -- list of notes to be used as a base (base octave)
     -- produce octave range and specific octaves
+    -- use positive integers to determine how low and high the octave range should be
+    -- for lower, will be subtracted from middle octave, for higher, will be added to middle octave
+    -- use math.abs and math.ceil to prevent negative numbers and only permit integers
+    -- use math.min to clamp below a difference of 10
     local octrange = def.octrange or {}
-    -- lower range must be less than noteC's octave - or equal to cancel the creation of lower octaves
-    octrange[1] = type(octrange[1]) == "number" and octrange[1] <= noteC.octave or noteC.octave - 2 -- 3
-    -- clamp above `middle octave - 10`
-    octrange[1] = octrange[1] ~= noteC.octave and (octrange[1] < noteC.octave - 10 and noteC.octave-10) or octrange[1]
-    -- ditto to the above - higher range greater - or equal to cancel creation of higher octaves
-    octrange[2] = type(octrange[2]) == "number" and octrange[2] >= noteC.octave or noteC.octave + 1 -- 2
-    -- clamp below `middle octave + 10`
-    octrange[2] = octrange[2] ~= noteC.octave and (octrange[2] > noteC.octave + 10 and noteC.octave+10) or octrange[2]
+    -- lower octave (default: -2)
+    octrange[1] = type(octrange[1]) == "number" and math.min(math.abs(math.ceil(octrange[1])), 10) or 2
+    octrange[1] = noteC.octave - octrange[1]
+    -- higher octave (default: +1)
+    octrange[2] = type(octrange[2]) == "number" and math.min(math.abs(math.ceil(octrange[2])), 10) or 1
+    octrange[2] = noteC.octave + octrange[2]
     -- fill the notes
     -- there can only be a total of 252 notes, below param2's max of 256
     local notes = {}
@@ -145,7 +147,11 @@ register_instrument(nil, "tph_notenode_ghlick")
 register_instrument(nil, "tph_notenode_llorlk")
 -- mod-specific instruments
 if depends.ncbells then
-    register_instrument("ncbell", "ncbells_ding")
+    register_instrument("ncbell", 
+      {sound="ncbells_ding",
+      -- low, high
+      octrange={4,3}
+      })
 end
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
