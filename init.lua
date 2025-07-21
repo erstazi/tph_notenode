@@ -549,11 +549,11 @@ local nbdef = { -- notenode definition
 nbdef.tiles = {}
 for i=1,6 do
     local tile = "tph_notenode.png^tph_notenode_crest.png"
-    tile = i ~= 2 and tile.."^"..(i == 1 and "tph_notenode_waveform.png" or
-      -- even is treble (higher), odd is bass (lower)
-      i%2 == 0 and "tph_notenode_treble.png" or
-      i%2 == 1 and "tph_notenode_bass.png") or tile
-    nbdef.tiles[i] = tile
+    if i ~= 2 then -- not the bottom
+        tile.."^"..(i == 1 and "tph_notenode_waveform.png" or -- top
+          (i==2 or i==4) and "tph_notenode_treble.png" or -- higher pitch
+          (i==3 or i==5) and "tph_notenode_bass.png") -- lower pitch
+    end
 end
 
 -- to tell compatibility layers that we already have crafting
@@ -717,7 +717,7 @@ core.register_on_mods_loaded(function()
         if not (addstruments[nname] or get_instrument_raw(nil, nil, node) ) then
             -- ncbells
             if node.mod_origin == "ncbells" then
-                do_override(nname, "ncbells")
+                do_override(nname, "ncbell")
             -- sometimes games are weird
             elseif type(node.sounds) == "table" then
                 local sound
