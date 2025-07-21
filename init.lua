@@ -571,26 +571,39 @@ for i=1,6 do
     nbdef.tiles[i] = tile
 end
 
--- mod functionality support
--- mesecons
-if depends.mesecons then
-    nbdef.mesecons = {
-        effector = {
-            rules = mesecon.rules.alldirs,
-            action_on = function(pos, node)
-                local ndef = node and core.registered_nodes[node.name]
-                if ndef and ndef.notenode_play_instrument then
-                    ndef.notenode_play_instrument(pos, node)
-                end
-            end
-        }
-    }
-end
-
 -- yeah, the MC-like games
 if depends.voxelibre or depends.mineclonia then
     -- transmits power beyond our node
     nbdef.groups.opaque = 1
+    -- crafting
+    local noteblock = depends.mineclonia and "mcl_noteblock:noteblock" or "mesecons_noteblock:noteblock"
+    core.register_craft({
+        output = "tph_notenode:notenode 2",
+        recipe = {
+          {noteblock, "mcl_core:iron_ingot", noteblock}
+        }
+    })
+    -- back to regular noteblocks
+    nbdef.on_punch = function(pos, node, puncher, pointed_thing)
+        local witem = puncher:get_wielded_item()
+        witem = witem:get_definition()
+        if witem then
+            -- convert back to a regular node if hacked by a wooden axe
+            if witem.groups.axe and witem.name:match("axe") then
+                local ndef = core.registered_nodes[noteblock]
+                if ndef then
+                    -- little sound effect to let you know
+                    core.sound_play("mcl_mobs_mob_poof", {
+                        pos = pos, pitch = math.random(85, 110)/100
+                    })
+                    return core.set_node(pos, {name = noteblock, param2 = (ndef and ndef.place_param2 or 0)})
+                end
+            end
+        end
+        -- otherwise play hopeful music
+        local ndef = core.registered_nodes[node.name]
+        ndef.notenode_play_instrument(pos, node)
+    end
 end
 
 -- mineclonia support
@@ -645,6 +658,22 @@ if depends.nodecore then
     end
     nbdef.groups.snappy = 1 -- digging properly
     nbdef.groups.optic_check = 1 -- for optic checking
+end
+
+-- mod functionality support
+-- mesecons
+if depends.mesecons then
+    nbdef.mesecons = {
+        effector = {
+            rules = mesecon.rules.alldirs,
+            action_on = function(pos, node)
+                local ndef = node and core.registered_nodes[node.name]
+                if ndef and ndef.notenode_play_instrument then
+                    ndef.notenode_play_instrument(pos, node)
+                end
+            end
+        }
+    }
 end
 
 -- register notenode
