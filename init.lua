@@ -175,22 +175,27 @@ local chords = {
 local default_instrument = "donk"
 
 -- pos, node, and ndef must be what is BELOW the note node
+-- node definition is the only requirement but yea
 local function get_instrument_raw(pos, node, ndef)
-    node = node or core.get_node(pos)
-    ndef = ndef or core.registered_nodes[node.name]
-    local groups = ndef.groups or {}
-    if ndef.name:match("tin") then
-        return instruments.dwoite
-    elseif ndef.name:match("clay") then
-        return instruments.oouve
-    elseif ndef.name:match("gold") then
-        return instruments.gliurk
+    if not ndef then
+        node = node or core.get_node(pos)
     end
-    if groups.tree then
+    ndef = ndef or core.registered_nodes[node.name]
+    -- will play any instrument specified and if said instrument exists
+    do
+        -- prioritized
+        local foundstrument = instruments[ndef.tph_notenode_instrument] -- found instrument
+        if foundstrument then
+            return foundstrument
+        end
+    end
+    -- could not find a specified instrument, aight!
+    local groups = ndef.groups or {}
+    if groups.tree or groups.material_wood or groups.wood then
         return instruments.bvogne
     elseif groups.stone then
         return instruments.blipck
-    elseif groups.sapling then
+    elseif groups.sapling or groups.bamboo_block then
         return instruments.ghlick
     elseif groups.water then
         return instruments.llorlk
@@ -199,33 +204,13 @@ local function get_instrument_raw(pos, node, ndef)
     -- metals
     elseif groups.metal then
         return instruments.couke
-    elseif groups.tin then
+    elseif groups.refined_tin then
         return instruments.dwoite
-    elseif groups.gold then
+    elseif groups.refined_gold then
         return instruments.gliurk
     --
     elseif groups.glass then
         return instruments.klalk
-    end
-    if depends.ncbells and ndef.mod_origin == "ncbells" then
-        return instruments.ncbell
-    end
-    if type(ndef.sounds) == "table" then
-        local sound
-        for _,data in pairs(ndef.sounds) do
-            if type(data) == "table" and data.name then
-                sound = data
-                break
-            end
-        end
-        if not sound then return end
-        -- metallic
-        if sound.name:match("metal") then
-            return instruments.couke
-        -- glassy
-        elseif sound.name:match("glass") then
-            return instruments.klalk
-        end
     end
 end
 
@@ -588,7 +573,6 @@ local function maintstream_craft()
     noteblock = core.registered_nodes[noteblock]
     irongot = core.registered_items[irongot]
     if not (noteblock and irongot) then return end -- can't craft
-    core.log("crafting true")
     has_craft = true
     -- crafting table
     core.register_craft({
@@ -707,3 +691,59 @@ end
 
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
+
+-- set groups UGH
+core.register_on_mods_loaded(function()
+    -- used to add an instrument to a node's definition
+    local function do_override(name, instrument)
+        core.override_item(name, {tph_notenode_instrument = instrument})
+    end
+    local addstruments = { -- add instruments
+        gliurk = {"mcl_core:goldblock", "default:goldblock"},
+        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped"},
+        dwoite = {"default:tinblock"}
+    }
+    -- add instrument string
+    for instrument, nodes in pairs(addstruments) do -- node name, instrument name
+        for _, nname in ipairs(nodes) do
+            if core.registered_nodes[nname] then
+                do_override(nname, instrument)
+            end
+        end
+    end
+    -- iterate through all nodes anyways
+    for nname, node in pairs(core.registered_nodes) do -- node name, node definition
+        -- not a node that'll generate a unique instrument
+        if not (addstruments[nname] or get_instrument_raw(nil, nil, node) ) then
+            -- ncbells
+            if node.mod_origin == "ncbells" then
+                do_override(nname, "ncbells")
+            -- sometimes games are weird
+            elseif type(node.sounds) == "table" then
+                local sound
+                -- find a soundspec
+                for _,data in pairs(node.sounds) do
+                    if type(data) == "table" and data.name then
+                        sound = data
+                        break
+                    end
+                end
+                -- if found and no instrument set already
+                if sound then
+                    if sound.name:match("metal") then
+                        do_override(nname, "couke")
+                    elseif sound.name:match("glass") then
+                        do_override(nname, "klalk")
+                    end
+                end
+            end
+            -- name checks
+            if not node.tph_notenode_instrument then
+                if node.name:match(":clay") then
+                    do_override(nname, "oouve")
+                end
+            end
+            -- sound exists if statement
+        end
+    end
+end)
