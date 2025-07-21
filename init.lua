@@ -12,9 +12,13 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 -- mod support
 local depends = {
-    mesecons = core.get_modpath("mesecons"),
-    voxelibre = core.get_modpath("mcl_core"),
+    -- games
+    default = core.get_modpath("default"), -- minetest, mesecraft
+    mineclonia = core.get_modpath("mcl_redstone"),
+    voxelibre = core.get_modpath("mcl_sounds"),
     nodecore = core.get_modpath("nc_optics"),
+    -- mods
+    mesecons = core.get_modpath("mesecons"),
     ncbells = core.get_modpath("ncbells") -- nodecore bells
 }
 
@@ -371,13 +375,29 @@ end
 --------------------------------
 -- CREATING THE NOTENODE NODE
 
+local function get_node_sound()
+    -- nil dig sound to prevent disruption of instrument notes
+    local sound = {dig={name=""}}
+    -- now to see what we should do
+    if (depends.voxelibre or depends.mineclonia) then -- MC-likes
+        return mcl_sounds.node_sound_wood_defaults(sound)
+    elseif depends.nodecore then
+        sound = nc.sounds("nc_tree_woody")
+        sound.dig = nil
+        return sound
+    -- minetest and some others
+    elseif depends.default then
+        return default.node_sound_wood_defaults(sound)
+    end
+end
+
 
 local nbdef = { -- notenode definition
     description = "Notenode",
     groups = {dig_immediate=2},
     drawtype = "normal",
     paramtype = "light",
-    sounds = {dig = {name=""}},
+    sounds = get_node_sound(),
     mapcolor = {r=129, g=52, b=16},
     is_ground_content = false,
     -- sets param2
@@ -565,10 +585,12 @@ if depends.mesecons then
             end
         }
     }
-    if depends.voxelibre then
-        -- transmits power beyond our node
-        nbdef.groups.opaque = 1
-    end
+end
+
+-- yeah, the MC-like games
+if depends.voxelibre or depends.mineclonia then
+    -- transmits power beyond our node
+    nbdef.groups.opaque = 1
 end
 
 -- mineclonia support
