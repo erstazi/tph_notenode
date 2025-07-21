@@ -571,39 +571,66 @@ for i=1,6 do
     nbdef.tiles[i] = tile
 end
 
--- yeah, the MC-like games
-if depends.voxelibre or depends.mineclonia then
-    -- transmits power beyond our node
-    nbdef.groups.opaque = 1
-    -- crafting
-    local noteblock = depends.mineclonia and "mcl_noteblock:noteblock" or "mesecons_noteblock:noteblock"
+-- to tell compatibility layers that we already have crafting
+local has_craft
+
+-- mesecons, voxelibre, mineclonia
+local function maintstream_craft()
+    if has_craft then return end -- crafting already exists
+    local noteblock = depends.mineclonia and "mcl_noteblock:noteblock" or
+      depends.mesecons and "mesecons_noteblock:noteblock"
+    local irongot = (depends.mineclonia or depends.voxelibre) and "mcl_core:iron_ingot" or
+      depends.mesecons and "mesecons_gamecompat:steel_ingot"
+    -- check aliases
+    noteblock = core.registered_aliases[noteblock] or noteblock
+    irongot = core.registered_aliases[irongot] or irongot
+    -- check definitions
+    noteblock = core.registered_nodes[noteblock]
+    irongot = core.registered_items[irongot]
+    if not (noteblock and irongot) then return end -- can't craft
+    core.log("crafting true")
+    has_craft = true
+    -- crafting table
     core.register_craft({
         output = "tph_notenode:notenode 2",
         recipe = {
-          {noteblock, "mcl_core:iron_ingot", noteblock}
+            {noteblock.name, irongot.name, noteblock.name}
         }
     })
+    -- uncraft mechanics
     -- back to regular noteblocks
     nbdef.on_punch = function(pos, node, puncher, pointed_thing)
         local witem = puncher:get_wielded_item()
         witem = witem:get_definition()
         if witem then
             -- convert back to a regular node if hacked by a wooden axe
-            if witem.groups.axe and witem.name:match("axe") then
-                local ndef = core.registered_nodes[noteblock]
-                if ndef then
+            if (witem.groups.wooden_axe or witem.groups.wood_axe)
+              or witem.groups.axe and witem.name:match("axe") then
+                -- prevent ruining noteblocks if protected
+                if core.is_player(puncher) then
+                    if core.is_protected(pos, puncher:get_player_name()) then return end
+                end
+                if (depends.mineclonia or depends.voxelibre) then
                     -- little sound effect to let you know
                     core.sound_play("mcl_mobs_mob_poof", {
                         pos = pos, pitch = math.random(85, 110)/100
                     })
-                    return core.set_node(pos, {name = noteblock, param2 = (ndef and ndef.place_param2 or 0)})
                 end
+                return core.set_node(pos, {name = noteblock.name, param2 = (noteblock.place_param2 or 0)})
             end
         end
         -- otherwise play hopeful music
         local ndef = core.registered_nodes[node.name]
         ndef.notenode_play_instrument(pos, node)
     end
+end
+
+-- yeah, the MC-like games
+if depends.voxelibre or depends.mineclonia then
+    -- transmits power beyond our node
+    nbdef.groups.opaque = 1
+    -- crafting
+    maintstream_craft()
 end
 
 -- mineclonia support
@@ -674,6 +701,8 @@ if depends.mesecons then
             end
         }
     }
+    -- crafting
+    maintstream_craft()
 end
 
 -- register notenode
