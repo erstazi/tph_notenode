@@ -550,8 +550,8 @@ nbdef.tiles = {}
 for i=1,6 do
     local tile = "tph_notenode.png^tph_notenode_crest.png"
     if i ~= 2 then -- not the bottom
-        tile.."^"..(i == 1 and "tph_notenode_waveform.png" or -- top
-          (i==2 or i==4) and "tph_notenode_treble.png" or -- higher pitch
+        nbdef.tiles[i] = tile.."^"..(i == 1 and "tph_notenode_waveform.png" or -- top
+          (i==4 or i==6) and "tph_notenode_treble.png" or -- higher pitch
           (i==3 or i==5) and "tph_notenode_bass.png") -- lower pitch
     end
 end
