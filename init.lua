@@ -232,9 +232,9 @@ end
 --
 -- spawns a little eighth note above the notenode
 
-local function noteparticle(pos, note, instrument)
-    pos = table.copy(pos)
-    pos.y = pos.y + 0.75
+local function noteparticle(pos, note, instrument, y)
+    pos = vector.new(pos)
+    pos.y = pos.y + (y or 0.75)
     -- randomize position to prevent zindex fighting
     local range = 100
     pos.x, pos.z = pos.x + (math.random(-range,range)/1000), pos.z + (math.random(-range,range)/1000)
@@ -360,19 +360,22 @@ end
 --------------------------------
 -- CREATING THE NOTENODE NODE
 
-local function get_node_sound()
+local function get_node_sound(is_device)
     -- nil dig sound to prevent disruption of instrument notes
     local sound = {dig={name=""}}
     -- now to see what we should do
     if (depends.voxelibre or depends.mineclonia) then -- MC-likes
-        return mcl_sounds.node_sound_wood_defaults(sound)
+        -- metallic sounds for instrumental device
+        return is_device and mcl_sounds.node_sound_metal_defaults(sound) or
+          mcl_sounds.node_sound_wood_defaults(sound)
     elseif depends.nodecore then
-        sound = nc.sounds("nc_tree_woody")
+        sound = nc.sounds( (is_device and "nc_lode_tempered" or "nc_tree_woody"))
         sound.dig = nil
         return sound
     -- minetest and some others
     elseif depends.default then
-        return default.node_sound_wood_defaults(sound)
+        return is_device and default.node_sound_metal_defaults(sound) or
+          default.node_sound_wood_defaults(sound)
     end
 end
 
@@ -401,7 +404,7 @@ local nbdef = { -- notenode definition
         --node = node or core.get_node(pos)
         --local ndef = core.registered_nodes[node.name]
         -- below
-        local bpos = table.copy(pos)
+        local bpos = vector.new(pos)
         bpos.y = bpos.y - 1
         bnode = bnode or core.get_node(bpos)
         -- return instrument corresponding to below node
@@ -556,6 +559,46 @@ for i=1,6 do
     end
 end
 
+--------------------------------
+-- CREATING THE INSTRUMENTAL DEVICE NODE
+
+local devicedef = {
+    description = "Instrumental Device",
+    groups = {dig_immediate=2},
+    sounds = get_node_sound(true),
+    drawtype = "mesh",
+    tiles = {"tph_notenode_tuner.png"},
+    mesh = "tph_notenode_tuner.obj",
+    collision_box = {
+      type="fixed",
+      fixed = {
+          {-1/16, -8/16, -7/16, 1/16, 2/16, 7/16},
+          {-7/16, -8/16, -1/16, 7/16, -5/16, 1/16},
+          {-4/16, 2/16, -4/16, 4/16, 5/16, 4/16},
+          --{-8/16, -8/16, -8/16, 8/16, 6/16, 8/16}
+      }
+    },
+    paramtype = "light",
+    on_punch = function(pos, node, puncher, pointed_thing)
+        node = node or core.get_node(pos)
+        local ndef = core.registered_nodes[node.name]
+        -- get instrument + note
+        local bpos = vector.new(pos)
+        bpos.y = bpos.y - 1
+        local instrument = get_instrument(bpos)
+        local instnotes = instrument.notes
+        -- not properly built into a notenode, play notes at random
+        local note = instnotes[math.random(1, #instnotes)]
+        -- play and particle
+        --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
+        core.sound_play(instrument.sound, {
+            max_hear_distance = 48, pitch = note.val, pos = pos, gain = instrument.gain
+        })
+        noteparticle(pos, note, instrument, 0.55)
+    end
+}
+devicedef.selection_box = devicedef.collision_box
+
 -- to tell compatibility layers that we already have crafting
 local has_craft
 
@@ -667,7 +710,9 @@ if depends.nodecore then
         activated[posid] = ctime
         nbdef.notenode_play_instrument(pos, node)
     end
-    nbdef.groups.snappy = 1 -- digging properly
+    -- digging properly
+    nbdef.groups.snappy = 1
+    devicedef.groups.snappy = 1
     nbdef.groups.optic_check = 1 -- for optic checking
 end
 
@@ -691,6 +736,8 @@ end
 
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
+-- register device node
+core.register_node("tph_notenode:device", devicedef)
 
 -- set groups UGH
 core.register_on_mods_loaded(function()
