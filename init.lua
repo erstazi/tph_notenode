@@ -734,6 +734,37 @@ if depends.mesecons then
     maintstream_craft()
 end
 
+-- default - e.g. minetest game, mesecraft, other minetest-based games
+if depends.default then
+    -- craft device
+    core.register_craft({
+        output = "tph_notenode:device",
+        recipe = {
+            {"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
+            {"", "default:mese_crystal", "default:steel_ingot"},
+            {"default:copper_ingot", "default:copper_ingot", "default:copper_ingot"}
+        }
+    })
+    -- craft instrument with device
+    core.register_craft({
+        output = "tph_notenode:notenode",
+        recipe = {
+            {"group:wood", "group:wood", "group:wood"},
+            {"group:wood", "tph_notenode:device", "group:wood"},
+            {"group:wood", "group:wood", "group:wood"}
+        }
+    })
+    -- secret alternative craft for sneaky users
+    core.register_craft({
+        output = "tph_notenode:notenode",
+        recipe = {
+            {"", "group:wood", ""},
+            {"group:wood", "tph_notenode:device", "group:wood"},
+            {"", "group:wood", ""},
+        }
+    })
+end
+
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
 -- register device node
