@@ -153,6 +153,8 @@ register_instrument(nil, "tph_notenode_llorlk")
 register_instrument(nil, "tph_notenode_oouve")
 -- bell-ish (made from flicking at a glass bottle)
 register_instrument(nil, {sound="tph_notenode_gliurk", octrange={3,1}})
+-- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
+register_instrument(nil, "tph_notenode_doap")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell", 
@@ -211,6 +213,8 @@ local function get_instrument_raw(pos, node, ndef)
     --
     elseif groups.glass then
         return instruments.klalk
+    elseif groups.rail then
+        return instruments.doap
     end
 end
 
@@ -553,10 +557,11 @@ nbdef.tiles = {}
 for i=1,6 do
     local tile = "tph_notenode.png^tph_notenode_crest.png"
     if i ~= 2 then -- not the bottom
-        nbdef.tiles[i] = tile.."^"..(i == 1 and "tph_notenode_waveform.png" or -- top
+        tile = tile.."^"..(i == 1 and "tph_notenode_waveform.png" or -- top
           (i==4 or i==6) and "tph_notenode_treble.png" or -- higher pitch
           (i==3 or i==5) and "tph_notenode_bass.png") -- lower pitch
     end
+    nbdef.tiles[i] = tile
 end
 
 --------------------------------
