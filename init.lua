@@ -233,6 +233,28 @@ local function get_instrument(pos, node, ndef)
     return inst
 end
 
+-- ditto to both of the above, except it's the expected notenode's get_instrument functionality
+local function notenode_get_instrument(pos, node, bpos, bnode)
+    -- below
+    if not bpos then
+        bpos = vector.new(pos)
+        bpos.y = bpos.y - 1
+    end
+    bnode = bnode or core.get_node(bpos)
+    -- nodecore unique
+    -- get the node from the itemstack actually!
+    if bnode.name == "nc_items:stack" then
+        local meta = core.get_meta(bpos)
+        local item = ItemStack(meta:get_string("ncitem"))
+        local def = item:get_definition()
+        if def then
+            bnode.name = def.name
+        end
+    end
+    -- return instrument corresponding to below node
+    return get_instrument(bpos, bnode)
+end
+
 --
 -- spawns a little eighth note above the notenode
 
@@ -403,17 +425,7 @@ local nbdef = { -- notenode definition
         core.swap_node(pos, node)
     end,
     -- pos, node, below node
-    notenode_get_instrument = function(pos, node, bnode)
-        -- ourselves
-        --node = node or core.get_node(pos)
-        --local ndef = core.registered_nodes[node.name]
-        -- below
-        local bpos = vector.new(pos)
-        bpos.y = bpos.y - 1
-        bnode = bnode or core.get_node(bpos)
-        -- return instrument corresponding to below node
-        return get_instrument(bpos, bnode)
-    end,
+    notenode_get_instrument = notenode_get_instrument,
     notenode_play_instrument = function(pos, node, instrument, note, player)
         node = node or core.get_node(pos)
         local ndef = core.registered_nodes[node.name]
@@ -588,9 +600,7 @@ local devicedef = {
         node = node or core.get_node(pos)
         local ndef = core.registered_nodes[node.name]
         -- get instrument + note
-        local bpos = vector.new(pos)
-        bpos.y = bpos.y - 1
-        local instrument = get_instrument(bpos)
+        local instrument = notenode_get_instrument(pos)
         local instnotes = instrument.notes
         -- not properly built into a notenode, play notes at random
         local note = instnotes[math.random(1, #instnotes)]
