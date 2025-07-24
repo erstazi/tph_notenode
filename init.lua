@@ -201,18 +201,18 @@ local function get_instrument_raw(pos, node, ndef)
         return instruments.llorlk
     elseif groups.clay then
         return instruments.oouve
+    elseif groups.rail then
+        return instruments.doap
     -- metals
-    elseif groups.metal or groups.lodey then
-        return instruments.couke
-    elseif groups.refined_tin then
+    elseif groups.refined_tin or (depends.nodecore and groups.adobe) then
         return instruments.dwoite
     elseif groups.refined_gold then
         return instruments.gliurk
+    elseif groups.metal or groups.metallic or groups.lodey then
+        return instruments.couke
     --
     elseif groups.glass then
         return instruments.klalk
-    elseif groups.rail then
-        return instruments.doap
     elseif groups.stone then
         return instruments.blipck
     end
@@ -796,7 +796,7 @@ core.register_node("tph_notenode:notenode", nbdef)
 -- register device node
 core.register_node("tph_notenode:device", devicedef)
 
--- set groups UGH
+-- set custom instruments UGH - no usable or sensible groups!
 core.register_on_mods_loaded(function()
     -- used to add an instrument to a node's definition
     local function do_override(name, instrument)
@@ -806,7 +806,8 @@ core.register_on_mods_loaded(function()
         gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque"},
         ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped"},
         dwoite = {"default:tinblock"},
-        oouve = {"nc_concrete:mud"}
+        oouve = {"nc_concrete:mud"},
+        doap = {"nc_woodwork:shelf"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -819,7 +820,7 @@ core.register_on_mods_loaded(function()
     -- iterate through all nodes anyways
     for nname, node in pairs(core.registered_nodes) do -- node name, node definition
         -- not a node that'll generate a unique instrument
-        if not (addstruments[nname] or get_instrument_raw(nil, nil, node) ) then
+        if not get_instrument_raw(nil, nil, node) then
             -- ncbells
             if node.mod_origin == "ncbells" then
                 do_override(nname, "ncbell")
@@ -839,6 +840,12 @@ core.register_on_mods_loaded(function()
                         do_override(nname, "couke")
                     elseif sound.name:match("glass") then
                         do_override(nname, "klalk")
+                    elseif depends.nodecore then
+                        if sound.name:match("tree_sticky") then
+                            do_override(nname, "ghlick")
+                        elseif sound.name:match("tree_woody") then
+                            do_override(nname, "bvogne")
+                        end
                     end
                 end
             end
