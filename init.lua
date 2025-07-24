@@ -198,7 +198,7 @@ local function get_instrument_raw(pos, node, ndef)
     local groups = ndef.groups or {}
     if groups.tree or groups.log or groups.material_wood or groups.wood then
         return instruments.bvogne
-    elseif groups.sapling or groups.bamboo_block then
+    elseif groups.sapling or groups.bamboo_block or groups.woody_plant then
         return instruments.ghlick
     elseif groups.water then
         return instruments.llorlk
@@ -405,6 +405,13 @@ local function get_node_sound(is_device)
     elseif depends.default then
         return is_device and default.node_sound_metal_defaults(sound) or
           default.node_sound_wood_defaults(sound)
+    -- device
+    elseif depends.exile then
+        -- get metal sound if it exists, otherwise stone sound for device
+        -- wooden sound for notenodes
+        return is_device and (tech.node_sound_metal_defaults and tech.node_sound_metal_defaults(sound) or
+          nodes_nature.node_sound_stone_defaults(sound)) or
+          nodes_nature.node_sound_wood_defaults(sound)
     end
 end
 
@@ -860,11 +867,11 @@ core.register_on_mods_loaded(function()
         core.override_item(name, {tph_notenode_instrument = instrument})
     end
     local addstruments = { -- add instruments
-        gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque"},
-        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped"},
-        dwoite = {"default:tinblock"},
+        gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass"},
+        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick"},
+        dwoite = {"default:tinblock", "artifacts:antiquorium"},
         oouve = {"nc_concrete:mud"},
-        doap = {"nc_woodwork:shelf"}
+        doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -878,6 +885,16 @@ core.register_on_mods_loaded(function()
     for nname, node in pairs(core.registered_nodes) do -- node name, node definition
         -- not a node that'll generate a unique instrument
         if not get_instrument_raw(nil, nil, node) then
+            -- exile unique stuff
+            if depends.exile then
+                if nname:match("_mg_") then
+                    do_override(nname, "gliurk")
+                elseif node.mod_origin == "tech" and nname:match("iron") then
+                    do_override(nname, "couke")
+                elseif type(node.drop) == "string" and node.drop:match(":clay") then
+                    do_override(nname, "oouve")
+                end
+            end
             -- ncbells
             if node.mod_origin == "ncbells" then
                 do_override(nname, "ncbell")
@@ -897,6 +914,7 @@ core.register_on_mods_loaded(function()
                         do_override(nname, "couke")
                     elseif sound.name:match("glass") then
                         do_override(nname, "klalk")
+                    -- nodecore sounds
                     elseif depends.nodecore then
                         if sound.name:match("tree_sticky") then
                             do_override(nname, "ghlick")
@@ -908,7 +926,7 @@ core.register_on_mods_loaded(function()
             end
             -- name checks
             if not node.tph_notenode_instrument then
-                if node.name:match(":clay") then
+                if nname:match(":clay") then
                     do_override(nname, "oouve")
                 end
             end
