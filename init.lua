@@ -189,7 +189,8 @@ local function get_instrument_raw(pos, node, ndef)
     if not ndef then
         node = node or core.get_node(pos)
     end
-    ndef = ndef or core.registered_nodes[node.name]
+    ndef = ndef or core.registered_items[node.name]
+    if not ndef then return end
     -- will play any instrument specified and if said instrument exists
     do
         -- prioritized
@@ -880,7 +881,7 @@ core.register_on_mods_loaded(function()
         dwoite = {"default:tinblock", "artifacts:antiquorium"},
         oouve = {"nc_concrete:mud"},
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
-        claen = {"default:ice"},
+        claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on"},
         mwuu = {"air"}
     }
     -- add instrument string
