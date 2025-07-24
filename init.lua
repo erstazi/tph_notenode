@@ -583,6 +583,7 @@ local devicedef = {
     description = "Instrumental Device",
     groups = {dig_immediate=2},
     sounds = get_node_sound(true),
+    mapcolor = {r=172, g=170, b=168},
     drawtype = "mesh",
     tiles = {"tph_notenode_tuner.png"},
     mesh = "tph_notenode_tuner.obj",
@@ -605,7 +606,6 @@ local devicedef = {
         -- not properly built into a notenode, play notes at random
         local note = instnotes[math.random(1, #instnotes)]
         -- play and particle
-        --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
         core.sound_play(instrument.sound, {
             max_hear_distance = 48, pitch = note.val, pos = pos, gain = instrument.gain
         })
