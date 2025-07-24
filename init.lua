@@ -17,10 +17,13 @@ local depends = {
     mineclonia = core.get_modpath("mcl_redstone"),
     voxelibre = core.get_modpath("mcl_sounds"),
     nodecore = core.get_modpath("nc_optics"),
+    exile = core.get_modpath("minimal") and core.get_modpath("crafting") and core.get_modpath("tech"),
     -- mods
     mesecons = core.get_modpath("mesecons"),
     ncbells = core.get_modpath("ncbells") -- nodecore bells
 }
+
+local NLC = (depends.nodecore or depends.exile) and true or false -- non-luanti crafting
 
 
 -- notes 1 to 12
@@ -798,8 +801,52 @@ if depends.mesecons then
     noteblock_craft()
 end
 
--- lazily run a function that handles overall crafting
-base_craft()
+-- non-luanti crafting
+if NLC then
+    -- I can't figure out nodecore crafting so this remains unfinished
+    if depends.nodecore then
+        
+    elseif depends.exile then
+        -- instrumental device crafting
+        crafting.register_recipe({
+            type = "anvil",
+            output = "tph_notenode:device",
+            items = {"tech:iron_ingot 2", "tech:iron_fittings 2", "artifacts:singing_stone"},
+            level = 1,
+            always_known = true
+        })
+        -- notenode
+        crafting.register_recipe({
+            type = "carpentry_bench",
+            output = "tph_notenode:notenode",
+            items = {"group:log 2", "tph_notenode:device"},
+            level = 1,
+            always_known = true
+        })
+        -- decrafting
+        crafting.register_recipe({
+            type = "anvil",
+            output = "artifacts:singing_stone",
+            items = {"tph_notenode:device"},
+            replace = {"tech:iron_ingot 2", "tech:iron_fittings 2"},
+            level = 1,
+            always_known = true,
+        })
+        -- notenode back to instrumental device
+        crafting.register_recipe({
+            type = core.registered_nodes["tech:axe_iron_placed"] and "axe" or "chopping_block",
+            output = "tph_notenode:device",
+            items = {"tph_notenode:notenode"},
+            replace = {"tech:stick 48"},
+            level = 1,
+            always_known = true,
+        })
+    end
+-- expected luanti-esque crafting
+else
+    -- lazily run a function that handles overall crafting
+    base_craft()
+end
 
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
