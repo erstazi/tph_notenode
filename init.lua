@@ -193,10 +193,8 @@ local function get_instrument_raw(pos, node, ndef)
     end
     -- could not find a specified instrument, aight!
     local groups = ndef.groups or {}
-    if groups.tree or groups.material_wood or groups.wood then
+    if groups.tree or groups.log or groups.material_wood or groups.wood then
         return instruments.bvogne
-    elseif groups.stone then
-        return instruments.blipck
     elseif groups.sapling or groups.bamboo_block then
         return instruments.ghlick
     elseif groups.water then
@@ -204,7 +202,7 @@ local function get_instrument_raw(pos, node, ndef)
     elseif groups.clay then
         return instruments.oouve
     -- metals
-    elseif groups.metal then
+    elseif groups.metal or groups.lodey then
         return instruments.couke
     elseif groups.refined_tin then
         return instruments.dwoite
@@ -215,6 +213,8 @@ local function get_instrument_raw(pos, node, ndef)
         return instruments.klalk
     elseif groups.rail then
         return instruments.doap
+    elseif groups.stone then
+        return instruments.blipck
     end
 end
 
@@ -672,7 +672,7 @@ local function base_craft()
     -- check registration
     irongot = core.registered_craftitems[irongot]
     coppergot = core.registered_craftitems[coppergot]
-    poweragent = poweragent:sub(1,6) ~= "group:" and core.registered_craftitems[poweragent] or poweragent
+    poweragent = (poweragent and poweragent:sub(1,6) ~= "group:" and core.registered_craftitems[poweragent]) or poweragent
     poweragent = type(poweragent) == "table" and poweragent.name or poweragent
     -- don't exist
     if not (irongot and coppergot and poweragent) then return end
@@ -803,9 +803,10 @@ core.register_on_mods_loaded(function()
         core.override_item(name, {tph_notenode_instrument = instrument})
     end
     local addstruments = { -- add instruments
-        gliurk = {"mcl_core:goldblock", "default:goldblock"},
+        gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque"},
         ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped"},
-        dwoite = {"default:tinblock"}
+        dwoite = {"default:tinblock"},
+        oouve = {"nc_concrete:mud"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -823,7 +824,7 @@ core.register_on_mods_loaded(function()
             if node.mod_origin == "ncbells" then
                 do_override(nname, "ncbell")
             -- sometimes games are weird
-            elseif type(node.sounds) == "table" then
+            elseif type(node.sounds) == "table" and not node.tph_notenode_instrument then
                 local sound
                 -- find a soundspec
                 for _,data in pairs(node.sounds) do
