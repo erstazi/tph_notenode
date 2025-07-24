@@ -608,7 +608,8 @@ devicedef.selection_box = devicedef.collision_box
 local has_craft
 
 -- mesecons, voxelibre, mineclonia
-local function maintstream_craft()
+-- based off of noteblocks
+local function noteblock_craft()
     if has_craft then return end -- crafting already exists
     local noteblock = depends.mineclonia and "mcl_noteblock:noteblock" or
       depends.mesecons and "mesecons_noteblock:noteblock"
@@ -657,12 +658,60 @@ local function maintstream_craft()
     end
 end
 
+-- crafting instrument device and notenode from it
+local function base_craft()
+    -- ensure all materials are accounted for
+    local irongot = (depends.mineclonia or depends.voxelibre) and "mcl_core:iron_ingot" or
+      depends.mesecons and "mesecons_gamecompat:steel_ingot" or
+      depends.default and "default:steel_ingot"
+    local coppergot = (depends.mineclonia or depends.voxelibre) and "mcl_copper:copper_ingot" or
+      depends.default and "default:copper_ingot"
+    local poweragent = depends.mineclonia and "mcl_redstone:redstone" or
+      depends.default and "default:mese_crystal" or
+      (depends.mesecons or depends.voxelibre) and "group:mesecon_conductor_craftable"
+    -- check registration
+    irongot = core.registered_craftitems[irongot]
+    coppergot = core.registered_craftitems[coppergot]
+    poweragent = poweragent:sub(1,6) ~= "group:" and core.registered_craftitems[poweragent] or poweragent
+    poweragent = type(poweragent) == "table" and poweragent.name or poweragent
+    -- don't exist
+    if not (irongot and coppergot and poweragent) then return end
+    -- craft device
+    core.register_craft({
+        output = "tph_notenode:device",
+        recipe = {
+            {irongot.name, irongot.name, irongot.name},
+            {"", poweragent, irongot.name},
+            {coppergot.name, coppergot.name, coppergot.name}
+        }
+    })
+    -- craft instrument with device
+    core.register_craft({
+        output = "tph_notenode:notenode",
+        recipe = {
+            {"group:wood", "group:wood", "group:wood"},
+            {"group:wood", "tph_notenode:device", "group:wood"},
+            {"group:wood", "group:wood", "group:wood"}
+        }
+    })
+    -- secret alternative craft for sneaky users
+    core.register_craft({
+        output = "tph_notenode:notenode",
+        recipe = {
+            {"", "group:wood", ""},
+            {"group:wood", "tph_notenode:device", "group:wood"},
+            {"", "group:wood", ""},
+        }
+    })
+end
+
+
 -- yeah, the MC-like games
 if depends.voxelibre or depends.mineclonia then
     -- transmits power beyond our node
     nbdef.groups.opaque = 1
     -- crafting
-    maintstream_craft()
+    noteblock_craft()
 end
 
 -- mineclonia support
@@ -736,39 +785,11 @@ if depends.mesecons then
         }
     }
     -- crafting
-    maintstream_craft()
+    noteblock_craft()
 end
 
--- default - e.g. minetest game, mesecraft, other minetest-based games
-if depends.default then
-    -- craft device
-    core.register_craft({
-        output = "tph_notenode:device",
-        recipe = {
-            {"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
-            {"", "default:mese_crystal", "default:steel_ingot"},
-            {"default:copper_ingot", "default:copper_ingot", "default:copper_ingot"}
-        }
-    })
-    -- craft instrument with device
-    core.register_craft({
-        output = "tph_notenode:notenode",
-        recipe = {
-            {"group:wood", "group:wood", "group:wood"},
-            {"group:wood", "tph_notenode:device", "group:wood"},
-            {"group:wood", "group:wood", "group:wood"}
-        }
-    })
-    -- secret alternative craft for sneaky users
-    core.register_craft({
-        output = "tph_notenode:notenode",
-        recipe = {
-            {"", "group:wood", ""},
-            {"group:wood", "tph_notenode:device", "group:wood"},
-            {"", "group:wood", ""},
-        }
-    })
-end
+-- lazily run a function that handles overall crafting
+base_craft()
 
 -- register notenode
 core.register_node("tph_notenode:notenode", nbdef)
