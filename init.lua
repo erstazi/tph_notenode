@@ -158,6 +158,8 @@ register_instrument(nil, "tph_notenode_oouve")
 register_instrument(nil, {sound="tph_notenode_gliurk", octrange={3,1}})
 -- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
 register_instrument(nil, "tph_notenode_doap")
+-- metallic clank sound/cowbell-ish (made from softly banging two ceramic bowls together)
+register_instrument(nil, "tph_notenode_claen")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell", 
@@ -206,6 +208,8 @@ local function get_instrument_raw(pos, node, ndef)
         return instruments.oouve
     elseif groups.rail then
         return instruments.doap
+    elseif groups.ice or groups.pottery then
+        return instruments.claen
     -- metals
     elseif groups.refined_tin or (depends.nodecore and groups.adobe) then
         return instruments.dwoite
@@ -871,7 +875,8 @@ core.register_on_mods_loaded(function()
         ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick"},
         dwoite = {"default:tinblock", "artifacts:antiquorium"},
         oouve = {"nc_concrete:mud"},
-        doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"}
+        doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
+        claen = {"default:ice"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
