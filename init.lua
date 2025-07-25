@@ -918,8 +918,7 @@ core.register_on_mods_loaded(function()
         oouve = {"nc_concrete:mud"},
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
         claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on"},
-        mwuu = {"air"},
-        ktaut = {"default:gravel"}
+        mwuu = {"air"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -941,6 +940,8 @@ core.register_on_mods_loaded(function()
                     do_override(nname, "couke")
                 elseif type(node.drop) == "string" and node.drop:match(":clay") then
                     do_override(nname, "oouve")
+                elseif type(node.drop) == "string" and node.drop:match(":gravel") then
+                    do_override(nname, "ktaut")
                 end
             end
             -- ncbells
@@ -976,6 +977,8 @@ core.register_on_mods_loaded(function()
             if not node.tph_notenode_instrument then
                 if nname:match(":clay") then
                     do_override(nname, "oouve")
+                elseif nname:match(":gravel") then
+                    do_override(nname, "ktaut")
                 end
             end
             -- sound exists if statement
