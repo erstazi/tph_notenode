@@ -19,6 +19,7 @@ local depends = {
     nodecore = core.get_modpath("nc_optics"),
     exile = core.get_modpath("minimal") and core.get_modpath("crafting") and core.get_modpath("tech"),
     aom = core.get_modpath("aom_wire"), -- age of mending
+    hades = core.get_modpath("hades_core"),
     -- mods
     mesecons = core.get_modpath("mesecons"),
     ncbells = core.get_modpath("ncbells"), -- nodecore bells
@@ -460,10 +461,15 @@ local function get_node_sound(is_device)
         return is_device and (tech.node_sound_metal_defaults and tech.node_sound_metal_defaults(sound) or
           nodes_nature.node_sound_stone_defaults(sound)) or
           nodes_nature.node_sound_wood_defaults(sound)
+    -- age of mending
     elseif depends.aom_sounds then
         sound = is_device and aom_sounds.default_metal() or aom_sounds.default_wood()
         sound.dig = {dig={name=""}}
         return sound
+    -- hades
+    elseif depends.hades then
+        return is_device and hades_sounds.node_sound_metal_defaults(sound) or
+          hades_sounds.node_sound_wood_defaults(sound)
     end
 end
 
@@ -736,11 +742,14 @@ local function base_craft()
     -- ensure all materials are accounted for
     local irongot = (depends.mineclonia or depends.voxelibre) and "mcl_core:iron_ingot" or
       depends.mesecons and "mesecons_gamecompat:steel_ingot" or
-      depends.default and "default:steel_ingot"
+      depends.default and "default:steel_ingot" or
+      depends.hades and "hades_core:steel_ingot"
     local coppergot = (depends.mineclonia or depends.voxelibre) and "mcl_copper:copper_ingot" or
-      depends.default and "default:copper_ingot"
+      depends.default and "default:copper_ingot" or
+      depends.hades and "hades_core:copper_ingot"
     local poweragent = depends.mineclonia and "mcl_redstone:redstone" or
       depends.default and "default:mese_crystal" or
+      depends.hades and "hades_core:mese_crystal" or
       (depends.mesecons or depends.voxelibre) and "group:mesecon_conductor_craftable"
     -- check registration
     irongot = core.registered_craftitems[irongot]
@@ -965,7 +974,7 @@ core.register_on_mods_loaded(function()
         gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass"},
         ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped",
           "tech:stick", "aom_flora:warpberry_bush"},
-        dwoite = {"default:tinblock", "artifacts:antiquorium"},
+        dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium"},
         oouve = {"nc_concrete:mud"},
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
         claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on"},
@@ -1001,6 +1010,8 @@ core.register_on_mods_loaded(function()
                 do_override(nname, "ncbell")
             elseif node.mod_origin == "aom_pipes" then
                 do_override(nname, "dwoite")
+            elseif node.mod_origin == "hades_bushes" then
+                do_override(nname, "ghlick")
             -- sometimes games are weird
             elseif type(node.sounds) == "table" and not node.tph_notenode_instrument then
                 local sound
