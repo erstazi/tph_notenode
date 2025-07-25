@@ -20,13 +20,14 @@ local depends = {
     exile = core.get_modpath("minimal") and core.get_modpath("crafting") and core.get_modpath("tech"),
     aom = core.get_modpath("aom_wire"), -- age of mending
     hades = core.get_modpath("hades_core"),
+    rpx = core.get_modpath("rp_default"), -- repixture
     -- mods
     mesecons = core.get_modpath("mesecons"),
     ncbells = core.get_modpath("ncbells"), -- nodecore bells
     aom_sounds = core.get_modpath("aom_sounds") -- possibly not always included?
 }
 
-local NLC = (depends.nodecore or depends.exile or depends.aom) and true or false -- non-luanti crafting
+local NLC = (depends.nodecore or depends.exile or depends.aom or depends.rpx) and true or false -- non-luanti crafting
 
 
 -- notes 1 to 12
@@ -470,6 +471,10 @@ local function get_node_sound(is_device)
     elseif depends.hades then
         return is_device and hades_sounds.node_sound_metal_defaults(sound) or
           hades_sounds.node_sound_wood_defaults(sound)
+    -- repixture
+    elseif depends.rpx then
+        return is_device and rp_sounds.node_sound_metal_defaults(sound) or
+          rp_sounds.node_sound_wood_defaults(sound)
     end
 end
 
@@ -874,6 +879,28 @@ if depends.aom then
     end
 end
 
+-- repixture support
+if depends.rpx then
+    -- crafting
+    -- device
+    crafting.register_craft({
+        output = "tph_notenode:device",
+        items = {
+            "rp_default:ingot_wrought_iron 4",
+            "rp_default:ingot_steel", -- used as a "power" cause idk the rarity of jewels and lumien
+            "rp_default:ingot_copper 3"
+        }
+    })
+    -- notenode
+    crafting.register_craft({
+        output = "tph_notenode:notenode",
+        items = {
+            "tph_notenode:device",
+            "group:wood 4"
+        }
+    })
+end
+
 -- mod functionality support
 -- mesecons
 if depends.mesecons then
@@ -971,13 +998,18 @@ core.register_on_mods_loaded(function()
         core.override_item(name, {tph_notenode_instrument = instrument})
     end
     local addstruments = { -- add instruments
-        gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass"},
+        gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass",
+          "rp_gold:block_gold", "rp_gold:ingot_gold"},
         ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped",
-          "tech:stick", "aom_flora:warpberry_bush"},
-        dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium"},
-        oouve = {"nc_concrete:mud"},
-        doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
-        claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on"},
+          "tech:stick", "aom_flora:warpberry_bush", "rp_default:papyrus"},
+        dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
+          "rp_default:tinblock", "rp_default:ingot_tin"},
+        oouve = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
+        doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder",
+          "rp_default:clam", "rp_default:clam_nopearl",
+          "rp_default:book", "rp_default:book_empty"},
+        claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on", "rp_lumien:crystal_on",
+          "rp_lumien:crystal_off"},
         mwuu = {"air"},
         couke = {"aom_stone:ironstone_brick"}
     }
