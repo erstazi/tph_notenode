@@ -200,7 +200,7 @@ register_instrument(nil, "tph_notenode_claen", {"ice", "pottery"})
 -- whistley sound (made from me blowing a whistle with my mouth)
 register_instrument(nil, "tph_notenode_mwuu", "air")
 -- papery percussion sound (made from me hitting a paper recyclable bag)
-register_instrument(nil, "tph_notenode_taoat", "sand")
+register_instrument(nil, "tph_notenode_ktaut", "gravel")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -918,7 +918,8 @@ core.register_on_mods_loaded(function()
         oouve = {"nc_concrete:mud"},
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
         claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on"},
-        mwuu = {"air"}
+        mwuu = {"air"},
+        ktaut = {"default:gravel"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
