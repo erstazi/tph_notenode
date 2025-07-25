@@ -497,7 +497,7 @@ local nbdef = { -- notenode definition
         node.param2 = note_octave_to_param2(instrument, basenote)
         core.swap_node(pos, node)
     end,
-    -- pos, node, below node
+    -- pos, node, below pos, below node
     notenode_get_instrument = notenode_get_instrument,
     notenode_play_instrument = function(pos, node, instrument, note, player)
         node = node or core.get_node(pos)
@@ -993,10 +993,12 @@ core.register_node("tph_notenode:device", devicedef)
 
 -- set custom instruments UGH - no usable or sensible groups!
 core.register_on_mods_loaded(function()
-    -- used to add an instrument to a node's definition
+    -- used to quickly add an instrument to a node's definition
     local function do_override(name, instrument)
         core.override_item(name, {tph_notenode_instrument = instrument})
     end
+    -- certain games don't have good groups
+    -- so we'll just have to add certain stuff, MANUALLY!
     local addstruments = { -- add instruments
         gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass",
           "rp_gold:block_gold", "rp_gold:ingot_gold"},
