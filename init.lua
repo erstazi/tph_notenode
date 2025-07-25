@@ -130,6 +130,12 @@ local function register_instrument(name, def, groups, noteC)
                 -- ditto
                 local new = {hertz=note.hertz*(2^i), name=note.name, octave=oct, num=note.num} -- new note
                 new.val = new.hertz/noteC.hertz -- calculate val (for pitch modification)
+                -- engine doesn't support pitches over 10x, break production
+                if new.val > 10.2 then
+                    -- cap octave range
+                    octrange[2] = octrange[2] - (numbocts - i)
+                    break
+                end
                 notes[#notes + 1] = new
             end
         end
