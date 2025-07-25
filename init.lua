@@ -138,20 +138,23 @@ local function register_instrument(name, def, groups, noteC)
     groups = type(groups) == "string" and {groups} or groups
     -- add to play_for_group
     if type(groups) == "table" then
-        -- choice priority (choose last)
-        local chooselast = groups.lowprty
-        if chooselast then
-            def.last_choice = true
+        -- choice priority (higher numbers = less likely to be picked if a lower number or none exists)
+        local lowprty = groups.lowprty
+        if lowprty then
+            def.choice_priority = lowprty
             groups.lowprty = nil
         end
         -- iterate through specified groups
         for _,grpname in ipairs(groups) do
-            -- play this instrument
+            -- play this instrument for this group
             if type(grpname) == "string" then
                 play_for_group[grpname] = name
             end
         end
     end
+    -- low priority mechanics
+    def.choice_priority = type(def.choice_priority) == "number" and def.choice_priority > 0 and def.choice_priority or
+      nil
     -- finalizing
     def.notes = notes
     def.name = name
@@ -169,13 +172,13 @@ register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base inst
 -- clacky kinda sound (made from scratching a plastic battery pack)
 register_instrument(nil, "tph_notenode_klalk", "glass")
 -- metallic-ish sound (made from hitting a metal pole)
-register_instrument(nil, "tph_notenode_couke", {lowprty=true, "metal", "metallic", "lodey"})
+register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey"})
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
 register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
 register_instrument(nil, "tph_notenode_bvogne", {"log", "log", "material_wood", "wood"})
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, "tph_notenode_blipck", {lowprty=true, "stone"})
+register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone"})
 -- bamboo-y (hit actual bamboo)
 register_instrument(nil, "tph_notenode_ghlick", {"sapling", "bamboo_block", "woody_plant"})
 -- watery (made from moving around in a bathtub of water)
@@ -231,17 +234,27 @@ local function get_instrument_raw(pos, node, ndef)
     -- check groups
     local groups = ndef.groups
     if type(groups) == "table" then
-        local instrument
+        local cinstrument -- chosen instrument
         for grpname, grpnum in pairs(groups) do
-            local instname = play_for_group[grpname] -- instrument name
-            -- only set instrument if found successfully
-            if instruments[instname] then
-                instrument = instruments[instname]
-                -- if not to continue looking for more instruments then break
-                if not instrument.last_choice then break end
+            local instrument = play_for_group[grpname] -- instrument name
+            -- only set playing instrument if found successfully
+            if instrument and grpnum > 0 then
+                instrument = instruments[instrument] -- get actual instrument definition
+                -- no chosen instrument yet
+                if not cinstrument then
+                    cinstrument = instrument
+                end
+                -- old (low) priority, current (low) priority
+                local oprty, cprty = cinstrument.choice_priority, instrument.choice_priority or 0
+                -- not to continue looking for more instruments if no low priority specified, break
+                if cprty == 0 then break end
+                -- replace with higher priority (lower number)
+                if cprty < oprty then
+                    cinstrument = instrument
+                end
             end
         end
-        return instrument
+        return cinstrument
     end
 end
 
