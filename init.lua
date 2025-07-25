@@ -180,7 +180,7 @@ register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base inst
 -- clacky kinda sound (made from scratching a plastic battery pack)
 register_instrument(nil, "tph_notenode_klalk", "glass")
 -- metallic-ish sound (made from hitting a metal pole)
-register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey"})
+register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey", "ironstone"})
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
 register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
@@ -194,15 +194,16 @@ register_instrument(nil, "tph_notenode_llorlk", "water")
 -- air-y (made from blowing into a glass bottle, 2x pitch)
 register_instrument(nil, "tph_notenode_oouve", {"clay", "flutey"})
 -- bell-ish (made from flicking at a glass bottle)
-register_instrument(nil, "tph_notenode_gliurk", "refined_gold")
+register_instrument(nil, "tph_notenode_gliurk", {"refined_gold", depends.aom and "gilded"})
 -- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
-register_instrument(nil, "tph_notenode_doap", "rail")
+register_instrument(nil, "tph_notenode_doap", {"rail", "pumpkin", depends.aom and "item_arlior_growth",
+  depends.aom and "item_arlior_growth_purple"})
 -- metallic clank sound/cowbell-ish (made from softly banging two ceramic bowls together)
-register_instrument(nil, "tph_notenode_claen", {"ice", "pottery"})
+register_instrument(nil, "tph_notenode_claen", {"ice", "pottery", depends.aom and "terracotta"})
 -- whistley sound (made from me blowing a whistle with my mouth)
 register_instrument(nil, "tph_notenode_mwuu", "air")
 -- papery percussion sound (made from me hitting a paper recyclable bag)
-register_instrument(nil, "tph_notenode_ktaut", "gravel")
+register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -643,7 +644,7 @@ end
 
 local devicedef = {
     description = "Instrumental Device",
-    groups = {dig_immediate=2},
+    groups = {dig_immediate=2, metallic=1},
     sounds = get_node_sound(true),
     mapcolor = {r=172, g=170, b=168},
     drawtype = "mesh",
@@ -962,12 +963,14 @@ core.register_on_mods_loaded(function()
     end
     local addstruments = { -- add instruments
         gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass"},
-        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick"},
+        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped",
+          "tech:stick", "aom_flora:warpberry_bush"},
         dwoite = {"default:tinblock", "artifacts:antiquorium"},
         oouve = {"nc_concrete:mud"},
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder"},
         claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on"},
-        mwuu = {"air"}
+        mwuu = {"air"},
+        couke = {"aom_stone:ironstone_brick"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -996,6 +999,8 @@ core.register_on_mods_loaded(function()
             -- ncbells
             if node.mod_origin == "ncbells" then
                 do_override(nname, "ncbell")
+            elseif node.mod_origin == "aom_pipes" then
+                do_override(nname, "dwoite")
             -- sometimes games are weird
             elseif type(node.sounds) == "table" and not node.tph_notenode_instrument then
                 local sound
