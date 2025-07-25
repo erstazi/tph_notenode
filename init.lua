@@ -18,12 +18,14 @@ local depends = {
     voxelibre = core.get_modpath("mcl_sounds"),
     nodecore = core.get_modpath("nc_optics"),
     exile = core.get_modpath("minimal") and core.get_modpath("crafting") and core.get_modpath("tech"),
+    aom = core.get_modpath("aom_wire"), -- age of mending
     -- mods
     mesecons = core.get_modpath("mesecons"),
-    ncbells = core.get_modpath("ncbells") -- nodecore bells
+    ncbells = core.get_modpath("ncbells"), -- nodecore bells
+    aom_sounds = core.get_modpath("aom_sounds") -- possibly not always included?
 }
 
-local NLC = (depends.nodecore or depends.exile) and true or false -- non-luanti crafting
+local NLC = (depends.nodecore or depends.exile or depends.aom) and true or false -- non-luanti crafting
 
 
 -- notes 1 to 12
@@ -450,13 +452,17 @@ local function get_node_sound(is_device)
     elseif depends.default then
         return is_device and default.node_sound_metal_defaults(sound) or
           default.node_sound_wood_defaults(sound)
-    -- device
+    -- exile
     elseif depends.exile then
         -- get metal sound if it exists, otherwise stone sound for device
         -- wooden sound for notenodes
         return is_device and (tech.node_sound_metal_defaults and tech.node_sound_metal_defaults(sound) or
           nodes_nature.node_sound_stone_defaults(sound)) or
           nodes_nature.node_sound_wood_defaults(sound)
+    elseif depends.aom_sounds then
+        sound = is_device and aom_sounds.default_metal() or aom_sounds.default_wood()
+        sound.dig = {dig={name=""}}
+        return sound
     end
 end
 
@@ -484,6 +490,7 @@ local nbdef = { -- notenode definition
     notenode_play_instrument = function(pos, node, instrument, note, player)
         node = node or core.get_node(pos)
         local ndef = core.registered_nodes[node.name]
+        if not ndef.notenode_get_instrument then return end -- no instrument function huuuh
         -- get instrument + note
         instrument = instrument or ndef.notenode_get_instrument(pos, node)
         note = note or get_refined_note_from_param2(node.param2, instrument)
@@ -835,6 +842,28 @@ if depends.nodecore then
     nbdef.groups.optic_check = 1 -- for optic checking
 end
 
+-- age of mending support
+if depends.aom then
+    local offnodes = {}
+    -- we're machines!
+    nbdef.groups.mechanisms = 1
+    devicedef.groups.mechanisms = 1
+    -- permit using as a relayer
+    nbdef.groups.wire_output = 1
+    -- play
+    -- target (our pos), player, (pos of clicked item)
+    nbdef._on_wire_input = function(target, player, pos)
+        -- get hash as an id to prevent overflow
+        local posid = core.hash_node_position(target)
+        if offnodes[posid] then return end
+        offnodes[posid] = true
+        -- now to actually play
+        nbdef.notenode_play_instrument(target)
+        aom_wire.activate(target, player) -- activate any others
+        core.after(0.2, function() offnodes[posid] = nil end)
+    end
+end
+
 -- mod functionality support
 -- mesecons
 if depends.mesecons then
@@ -892,6 +921,26 @@ if NLC then
             replace = {"tech:stick 48"},
             level = 1,
             always_known = true,
+        })
+    -- age of mending crafting
+    -- only if machine crafting is allowed (?)
+    elseif depends.aom and aom_machines.has_aom_tcraft then
+        -- device
+        aom_tcraft.register_craft({
+            output = "tph_notenode:device",
+            items = {
+                ["aom_machines:gear_lever"] = 1,
+                ["aom_items:iron_sheet"] = 1,
+                ["aom_items:iron_bar"] = 2,
+                ["aom_items:copper_bar"] = 2
+            },
+        })
+        -- notenode
+        aom_tcraft.register_group_craft({
+            output = "tph_notenode:notenode",
+            items = {["tph_notenode:device"] = 1},
+            group = "planks",
+            group_count = 4
         })
     end
 -- expected luanti-esque crafting
