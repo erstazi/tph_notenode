@@ -96,8 +96,8 @@ local function register_instrument(name, def, groups, noteC)
     -- lower octave (default: -2)
     octrange[1] = type(octrange[1]) == "number" and math.min(math.abs(math.ceil(octrange[1])), 10) or 2
     octrange[1] = noteC.octave - octrange[1]
-    -- higher octave (default: +1)
-    octrange[2] = type(octrange[2]) == "number" and math.min(math.abs(math.ceil(octrange[2])), 10) or 1
+    -- higher octave (default: +2)
+    octrange[2] = type(octrange[2]) == "number" and math.min(math.abs(math.ceil(octrange[2])), 10) or 2
     octrange[2] = noteC.octave + octrange[2]
     -- fill the notes
     -- there can only be a total of 252 notes, below param2's max of 256
@@ -192,7 +192,7 @@ register_instrument(nil, "tph_notenode_llorlk", "water")
 -- air-y (made from blowing into a glass bottle, 2x pitch)
 register_instrument(nil, "tph_notenode_oouve", {"clay", "flutey"})
 -- bell-ish (made from flicking at a glass bottle)
-register_instrument(nil, {sound="tph_notenode_gliurk", octrange={3,1}}, "refined_gold")
+register_instrument(nil, "tph_notenode_gliurk", "refined_gold")
 -- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
 register_instrument(nil, "tph_notenode_doap", "rail")
 -- metallic clank sound/cowbell-ish (made from softly banging two ceramic bowls together)
@@ -201,7 +201,7 @@ register_instrument(nil, "tph_notenode_claen", {"ice", "pottery"})
 register_instrument(nil, "tph_notenode_mwuu", "air")
 -- mod-specific instruments
 if depends.ncbells then
-    register_instrument("ncbell", 
+    register_instrument("ncbell",
       {sound="ncbells_ding",
       -- low, high
       octrange={4,3}
