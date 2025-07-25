@@ -32,14 +32,25 @@ local notenames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "
 local notecolours = {"#ff0000","#ff8000","#ffff00","#80ff00","#00ff00","#00ff80","#00ffff", -- C - F
   "#0080ff","#0000ff","#7f00ff","#ff00ff","#ff0080"} -- F# to B
 
+-- registered unique instruments
 local instruments = {}
 
+-- list of instruments to play for specific groups
+local play_for_group = {}
+
+------------------------------------------
 -- register an instrument
+
 -- name can be nil as it can be derived from sound file's name minus the mod's name
+
 -- def can be the sound file string, otherwise must be a table with `sound` as an index
--- tune is the hertz of middle C (aka your sound file which SHOULD BE TUNED to C!)
--- gain is the volume of the instrument
-local function register_instrument(name, def, tune, gain)
+
+-- groups is a custom table of group names, used to check the node below to determine what instrument ot play
+
+-- noteC is a custom table to be used for providing the hertz of the middle C
+-- noteC is not required and will be set automatically otherwise
+
+local function register_instrument(name, def, groups, noteC)
     name = type(name) == "string" and name or "unknown"
     -- basic definition (requires sound)
     def = type(def) == "string" and {sound=def} or type(def) == "table" and def
@@ -55,16 +66,13 @@ local function register_instrument(name, def, tune, gain)
         error("tph_notenode: '"..name.."' is an already registered instrument! Please name your instrument something else.")
     end
     -- volume
-    gain = type(gain) == "number" and gain > 0 and gain or 1
-    def.gain = gain
-    -- tune! be sure you properly tune it to be C!
-    tune = type(tune) == "number" and (tune > 0 and tune) or 261.6256
-    -- create noteC (middle C note)
-    local noteC = def.noteC or {}
-    def.noteC = nil -- erase from def
-    noteC.octave = noteC.octave or 1
-    noteC.hertz = tune
-    noteC.val, noteC.num = 1, 1
+    def.gain = type(def.gain) == "number" and def.gain > 0 and def.gain or 1
+    -- noteC (middle C note)
+    noteC = type(noteC) == "table" and noteC or {}
+    -- hertz! be sure you properly tune it to be C!
+    noteC.hertz = type(noteC.hertz) == "number" and (noteC.hertz > 0 and noteC.hertz) or 261.6256
+    noteC.octave = type(noteC.octave) == "number" and noteC.octave or 1
+    noteC.val, noteC.num = 1, 1 -- actual pitch, note ID
     -- create other base notes (positive pitch)
     noteC.name = "C"
     local basenotes = {}
@@ -126,6 +134,24 @@ local function register_instrument(name, def, tune, gain)
             end
         end
     end
+    -- figure out groups if specified
+    groups = type(groups) == "string" and {groups} or groups
+    -- add to play_for_group
+    if type(groups) == "table" then
+        -- choice priority (choose last)
+        local chooselast = groups.lowprty
+        if chooselast then
+            def.last_choice = true
+            groups.lowprty = nil
+        end
+        -- iterate through specified groups
+        for _,grpname in ipairs(groups) do
+            -- play this instrument
+            if type(grpname) == "string" then
+                play_for_group[grpname] = name
+            end
+        end
+    end
     -- finalizing
     def.notes = notes
     def.name = name
@@ -133,35 +159,37 @@ local function register_instrument(name, def, tune, gain)
     instruments[name] = def
 end
 
--- name, tune, sound
--- name can be nil and grabbed from sound, tune can be nil as it defaults to the 1939 tuning standard
+-- name, groups, noteC
+-- name can be nil and grabbed from sound, groups is expected to be filled with group strings, noteC can be nil
 -- sound can be a definition table, if so, must have {sound=sound_name}
+-- lowprty can be specified in groups for it to be overriden by another instrument in choice making
+
 -- simple bling-like synthy sound, springy (made from a spring inside of a mouse)
-register_instrument(nil, "tph_notenode_donk", 259.459) -- base instrument
+register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base instrument
 -- clacky kinda sound (made from scratching a plastic battery pack)
-register_instrument(nil, "tph_notenode_klalk")
+register_instrument(nil, "tph_notenode_klalk", "glass")
 -- metallic-ish sound (made from hitting a metal pole)
-register_instrument(nil, "tph_notenode_couke")
+register_instrument(nil, "tph_notenode_couke", {lowprty=true, "metal", "metallic", "lodey"})
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
-register_instrument(nil, "tph_notenode_dwoite")
+register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
-register_instrument(nil, "tph_notenode_bvogne")
+register_instrument(nil, "tph_notenode_bvogne", {"log", "log", "material_wood", "wood"})
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, "tph_notenode_blipck")
+register_instrument(nil, "tph_notenode_blipck", {lowprty=true, "stone"})
 -- bamboo-y (hit actual bamboo)
-register_instrument(nil, "tph_notenode_ghlick")
+register_instrument(nil, "tph_notenode_ghlick", {"sapling", "bamboo_block", "woody_plant"})
 -- watery (made from moving around in a bathtub of water)
-register_instrument(nil, "tph_notenode_llorlk")
+register_instrument(nil, "tph_notenode_llorlk", "water")
 -- air-y (made from blowing into a glass bottle, 2x pitch)
-register_instrument(nil, "tph_notenode_oouve")
+register_instrument(nil, "tph_notenode_oouve", {"clay", "flutey"})
 -- bell-ish (made from flicking at a glass bottle)
-register_instrument(nil, {sound="tph_notenode_gliurk", octrange={3,1}})
+register_instrument(nil, {sound="tph_notenode_gliurk", octrange={3,1}}, "refined_gold")
 -- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
-register_instrument(nil, "tph_notenode_doap")
+register_instrument(nil, "tph_notenode_doap", "rail")
 -- metallic clank sound/cowbell-ish (made from softly banging two ceramic bowls together)
-register_instrument(nil, "tph_notenode_claen")
+register_instrument(nil, "tph_notenode_claen", {"ice", "pottery"})
 -- whistley sound (made from me blowing a whistle with my mouth)
-register_instrument(nil, "tph_notenode_mwuu")
+register_instrument(nil, "tph_notenode_mwuu", "air")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell", 
@@ -200,33 +228,20 @@ local function get_instrument_raw(pos, node, ndef)
         end
     end
     -- could not find a specified instrument, aight!
-    local groups = ndef.groups or {}
-    if groups.tree or groups.log or groups.material_wood or groups.wood then
-        return instruments.bvogne
-    elseif groups.sapling or groups.bamboo_block or groups.woody_plant then
-        return instruments.ghlick
-    elseif groups.water then
-        return instruments.llorlk
-    elseif groups.clay then
-        return instruments.oouve
-    elseif groups.rail then
-        return instruments.doap
-    elseif groups.ice or groups.pottery then
-        return instruments.claen
-    elseif groups.air then
-        return instruments.mwuu
-    -- metals
-    elseif groups.refined_tin or (depends.nodecore and groups.adobe) then
-        return instruments.dwoite
-    elseif groups.refined_gold then
-        return instruments.gliurk
-    elseif groups.metal or groups.metallic or groups.lodey then
-        return instruments.couke
-    --
-    elseif groups.glass then
-        return instruments.klalk
-    elseif groups.stone then
-        return instruments.blipck
+    -- check groups
+    local groups = ndef.groups
+    if type(groups) == "table" then
+        local instrument
+        for grpname, grpnum in pairs(groups) do
+            local instname = play_for_group[grpname] -- instrument name
+            -- only set instrument if found successfully
+            if instruments[instname] then
+                instrument = instruments[instname]
+                -- if not to continue looking for more instruments then break
+                if not instrument.last_choice then break end
+            end
+        end
+        return instrument
     end
 end
 
