@@ -1005,7 +1005,7 @@ core.register_on_mods_loaded(function()
           "rp_gold:block_gold", "rp_gold:ingot_gold"},
         ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick",
           "aom_flora:warpberry_bush", "rp_default:papyrus", "default:pine_bush_stem",
-          "default:bush_stem", "default:acacia_bush_stem"},
+          "default:bush_stem", "default:acacia_bush_stem", "aom_flora:warpberry_stem"},
         dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
           "rp_default:block_tin", "rp_default:ingot_tin"},
         oouve = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
