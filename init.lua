@@ -189,7 +189,7 @@ register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore
 -- wobbly bassy song (made from playing a spread-out shoelace)
 register_instrument(nil, "tph_notenode_bvogne", {lowprty=6, "tree", "log", "material_wood", "wood"})
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone"})
+register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone", "material_stone"})
 -- bamboo-y (hit actual bamboo)
 register_instrument(nil, "tph_notenode_ghlick", {"sapling", "bamboo_block", "woody_plant"})
 -- watery (made from moving around in a bathtub of water)
@@ -1054,6 +1054,9 @@ core.register_on_mods_loaded(function()
                 do_override(nname, "dwoite")
             elseif node.mod_origin == "hades_bushes" then
                 do_override(nname, "ghlick")
+            elseif node.mod_origin == "mcl_copper" and (groups.oxidizable or groups.waxed or
+              node._mcl_waxed_variant) then
+                do_override(nname, "dwoite")
             -- sometimes games are weird
             elseif type(node.sounds) == "table" and not node.tph_notenode_instrument then
                 local sound
@@ -1088,7 +1091,7 @@ core.register_on_mods_loaded(function()
                     do_override(nname, "ktaut")
                 end
             end
-            -- sound exists if statement
         end
+        -- no instrument provided if statement
     end
 end)
