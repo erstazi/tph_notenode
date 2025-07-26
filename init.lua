@@ -1002,8 +1002,9 @@ core.register_on_mods_loaded(function()
     local addstruments = { -- add instruments
         gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass",
           "rp_gold:block_gold", "rp_gold:ingot_gold"},
-        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped",
-          "tech:stick", "aom_flora:warpberry_bush", "rp_default:papyrus"},
+        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick",
+          "aom_flora:warpberry_bush", "rp_default:papyrus", "default:pine_bush_stem",
+          "default:bush_stem", "default:acacia_bush_stem"},
         dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
           "rp_default:tinblock", "rp_default:ingot_tin"},
         oouve = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
