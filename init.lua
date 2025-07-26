@@ -182,7 +182,8 @@ register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base inst
 -- clacky kinda sound (made from scratching a plastic battery pack)
 register_instrument(nil, "tph_notenode_klalk", "glass")
 -- metallic-ish sound (made from hitting a metal pole)
-register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey", "ironstone"})
+register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey",
+  "ironstone", depends.rpx and "ingot"})
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
 register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
@@ -1006,7 +1007,7 @@ core.register_on_mods_loaded(function()
           "aom_flora:warpberry_bush", "rp_default:papyrus", "default:pine_bush_stem",
           "default:bush_stem", "default:acacia_bush_stem"},
         dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
-          "rp_default:tinblock", "rp_default:ingot_tin"},
+          "rp_default:block_tin", "rp_default:ingot_tin"},
         oouve = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder",
           "rp_default:clam", "rp_default:clam_nopearl",
@@ -1028,6 +1029,7 @@ core.register_on_mods_loaded(function()
     for nname, node in pairs(core.registered_nodes) do -- node name, node definition
         -- not a node that'll generate a unique instrument
         if not get_instrument_raw(nil, nil, node) then
+            local groups = node.groups or {} -- just so we can easily check
             -- exile unique stuff
             if depends.exile then
                 if nname:match("_mg_") then
@@ -1038,6 +1040,11 @@ core.register_on_mods_loaded(function()
                     do_override(nname, "oouve")
                 elseif type(node.drop) == "string" and node.drop:match(":gravel") then
                     do_override(nname, "ktaut")
+                end
+            -- repixture unique stuff
+            elseif depends.rpx then
+                if nname:match("rp_default:block_") and groups.cracky then
+                    do_override(nname, "couke")
                 end
             end
             -- ncbells
