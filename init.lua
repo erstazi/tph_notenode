@@ -919,7 +919,7 @@ if depends.rpx then
         output = "tph_notenode:notenode",
         items = {
             "tph_notenode:device",
-            "group:wood 4"
+            "group:planks 4"
         }
     })
 end
