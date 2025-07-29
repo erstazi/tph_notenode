@@ -189,7 +189,8 @@ register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore
 -- wobbly bassy song (made from playing a spread-out shoelace)
 register_instrument(nil, "tph_notenode_bvogne", {lowprty=6, "tree", "log", "material_wood", "wood"})
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone", "material_stone"})
+register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone", "material_stone", "boulder",
+  "cobble", depends.exile and "masonry"})
 -- bamboo-y (hit actual bamboo)
 register_instrument(nil, "tph_notenode_ghlick", {"sapling", "bamboo_block", "woody_plant"})
 -- watery (made from moving around in a bathtub of water)
@@ -902,6 +903,13 @@ if depends.rpx then
     })
 end
 
+-- exile support
+if depends.exile then
+    -- have it so it's protected upon place
+    nbdef.after_place_node = minimal.protection_after_place_node
+    devicedef.after_place_node = minimal.protection_after_place_node
+end
+
 -- mod functionality support
 -- mesecons
 if depends.mesecons then
@@ -1032,7 +1040,10 @@ core.register_on_mods_loaded(function()
             local groups = node.groups or {} -- just so we can easily check
             -- exile unique stuff
             if depends.exile then
-                if nname:match("_mg_") then
+                if node.drawtype == "mesh" and node.paramtype2 == "facedir" and
+                  node.name:match("cobble") then
+                    do_override(nname, "blipck")
+                elseif nname:match("_mg_") then
                     do_override(nname, "gliurk")
                 elseif node.mod_origin == "tech" and nname:match("iron") then
                     do_override(nname, "couke")
