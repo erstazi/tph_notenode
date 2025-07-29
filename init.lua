@@ -613,6 +613,12 @@ local nbdef = { -- notenode definition
         -- subtracted as explained above
         node.param2 = param2-1
         core.swap_node(pos, node)
+        -- have protection on place
+        if depends.exile then
+            local meta = core.get_meta(pos)
+            meta:set_string("description", "") -- annoying, remove dis
+            minimal.protection_after_place_node(pos, placer, itemstack, pointed_thing, meta, imeta)
+        end
     end,
     --[[
     on_punch = function(pos, node, puncher, pointed_thing)
@@ -921,7 +927,6 @@ end
 -- exile support
 if depends.exile then
     -- have it so it's protected upon place
-    nbdef.after_place_node = minimal.protection_after_place_node
     devicedef.after_place_node = minimal.protection_after_place_node
 end
 
