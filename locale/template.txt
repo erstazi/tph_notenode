@@ -1,0 +1,10 @@
+# textdomain: tph_notenode
+
+# Mod name + desc
+TPH's Notenode=
+Provides musically charged nodes for playing music - unique instruments + options=
+# actual modstuff
+Notenode=
+# for handling notes in the name
+Notenode @1=
+Instrumental Device=

@@ -10,6 +10,9 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
+-- translator functionality
+local S = core.get_translator("tph_notenode")
+
 -- mod support
 local depends = {
     -- games
@@ -26,6 +29,8 @@ local depends = {
     ncbells = core.get_modpath("ncbells"), -- nodecore bells
     aom_sounds = core.get_modpath("aom_sounds") -- possibly not always included?
 }
+
+depends.exilev4 = depends.exile and core.get_modpath("mapchunk_shepherd")
 
 local NLC = (depends.nodecore or depends.exile or depends.aom or depends.rpx) and true or false -- non-luanti crafting
 
@@ -482,7 +487,7 @@ end
 
 
 local nbdef = { -- notenode definition
-    description = "Notenode",
+    description = S("Notenode"),
     groups = {dig_immediate=2},
     drawtype = "normal",
     paramtype = "light",
@@ -574,14 +579,24 @@ local nbdef = { -- notenode definition
         local basenote = instrument.basenotes[1]
         local baseparam2 = note_octave_to_param2(instrument, basenote)
         -- don't save this, equals middle C's param2 conversion
-        if oldnode.param2 == baseparam2 then return end
+        if oldnode.param2 == baseparam2 then
+            -- actually, exilev4 has a unique conundrum they've given us!
+            if depends.exilev4 then
+                local imeta = stack:get_meta()
+                -- Exile v4 doesn't know when to let go, erase description meta
+                if imeta then
+                    return imeta:set_string("description", "")
+                end
+            end
+            return
+        end
         -- get item's meta now
         local imeta = stack:get_meta()
         if not imeta then return end -- failed to get meta
         -- add notename to description
         local cnote = instrument.notes[oldnode.param2+1] -- current note
         if (cnote and cnote.name ~= "C") then
-            imeta:set_string("description", stack:get_description().." "..cnote.name)
+            imeta:set_string("description", S("Notenode @1", cnote.name))
         end
         -- save as int
         -- add by 1 to ensure it's not equal to a nil get_int() - 0
@@ -656,7 +671,7 @@ end
 -- CREATING THE INSTRUMENTAL DEVICE NODE
 
 local devicedef = {
-    description = "Instrumental Device",
+    description = S("Instrumental Device"),
     groups = {dig_immediate=2, metallic=1},
     sounds = get_node_sound(true),
     mapcolor = {r=172, g=170, b=168},
