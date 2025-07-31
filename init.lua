@@ -414,87 +414,61 @@ local function noteparticle(pos, note, instrument, y)
     })
 end
 
--- instrument (e.g. from registered_instruments)
--- octave (param2 `rawoctave` or if `convert_to_raw` is true, convert refined note octave to param2)
-local function instrument_calculate_octave(instrument, octave, convert_to_raw)
+-- convert raw param2 to a tangible note
+local function get_note(param2, instrument)
+    if type(param2) ~= "number" then return end
+    -- instrument should be the instrument you get from `tph_notenode.registered_instruments`
+    instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or
+      type(instrument) == "table" and instrument
+    if not (instrument and instrument.notes) then return end
+    -- instrument notes, will be used for clamping
     local instnotes = instrument.notes
-    local octamt = #instnotes/12 -- octave amount -- how many octaves in instrument total
-    -- converting instrumental octave into param2 octave
-    if convert_to_raw then
-        local octmin, octmax = instrument.octave_range[1], instrument.octave_range[2] -- min to max of range
-        if octave < octmin then return 0 end -- give lowest raw octave
-        if octave > octmax then return math.floor(#instnotes/12) end -- give highest raw octave
-        -- index will be the raw octave we want
-        for ind,note in ipairs(instnotes) do
-            if note.octave == octave then -- found our octave of choice
-                return math.floor(ind/12) -- that is, `index/12` is the raw octave we want
-            end
-        end
-    -- converting param2 octave into instrumental octave
-    else
-        octave = math.min(octave, octamt) -- clamp below instrument octave amount
-        if octave == 0 then return instnotes[1].octave end -- octave of lowest note
-        octave = octave*12
-        local note = instnotes[octave] -- otherwise octave of interest will be at note `octave*12`
-        if note and note.num%12 == 0 then
-            note = instnotes[octave+1]
-        end
-        if not note then return instnotes[#instnotes].octave end -- too high!
-        return note.octave
+    local notesamt = #instnotes -- notes amount (amount of notes)
+    if not notesamt then return end -- no numbered indexes, you gave me a faulty one!
+    -- +1 as lua tables start with 1 not 0
+    param2 = param2 + 1
+    -- clamp param2
+    -- too low, start high
+    if param2 < 1 then
+        param2 = notesamt
+    -- too high, start low
+    elseif param2 > notesamt then
+        param2 = 1
     end
+    -- should never be nil unless you messed up your copy of the instrument
+    return instnotes[param2]
 end
 
--- node functions
+-- if given a param2 and instrument (or instrument name), returns playable note
+tph_notenode.convert_param2_to_note = get_note
 
--- param2 is expected to be 0 to 251
--- converts param2 into a corresponding note and octave
-local function param2_to_note_octave(param2, instrument)
-    local octaveraw = param2/12
-    local octave = math.floor(octaveraw)
-    local note = (octaveraw-octave)*12 -- percentage of 12
-    -- note would be 0 to 11, but is added 1 to be 1 to 12
-    note = math.floor(note + 0.5) + 1 -- round it too
-    -- if instrument is not provided:
-    -- octave will be param2 converted into a positive integer
-    -- you will have to calculate what this means with your instrument
-    return note, instrument and instrument_calculate_octave(instrument, octave) or octave
-end
-
--- instrument data, note data
-local function note_octave_to_param2(instrument, note)
-    local param2 = instrument_calculate_octave(instrument, note.octave, true)
-    return (param2*12) + (note.num-1)
-end
-
--- get a note within the bounds of an instrument's notes using rawnote and octave
-local function get_refined_note(rawnote, octave, instrument)
+-- convert note table back to param2
+local function convert_note(note, instrument)
+    instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
+    if not (type(note) == "table" and type(instrument)) == "table" then return end
     local instnotes = instrument.notes
-    -- clamping
-    -- too low! lower than lowest note in instrument
-    if octave < instnotes[1].octave then
-        -- find ourselves on the first row
-        return instnotes[rawnote]
+    local octrange = instrument.octave_range
+    if not (note.octave and instnotes and octrange) then return end
+    -- clamp octave
+    -- too low, go to first note's param2 equivalent
+    if note.octave < octrange[1] then
+        return 0
+    -- too high, go to last note and subtract for proper param2
+    elseif note.octave > octrange[2] then
+        return #instnotes-1
     end
-    -- too high! higher than highest note in instrument
-    local hightave = instnotes[#instnotes].octave
-    if octave > hightave then
-        -- find equivalent note by subtracting length of instrument notes by `length of instnotes subtracted by (scale-rawnote)`
-        -- scale being 12
-        return instnotes[#instnotes-(12-rawnote)]
-    end
-    -- iterate through notes
-    for _,note in ipairs(instrument.notes) do
-        if note.octave == octave and note.num == rawnote then
-            return note
+    local param2 = 0 -- always return a number
+    -- iterate over instrument's notes to match
+    for ind,snote in ipairs(instnotes) do -- index, selected note
+        if snote.octave == note.octave and snote.num == note.num then
+            param2 = ind-1 -- subtract 1 for a proper param2
         end
     end
+    return param2
 end
 
--- for extra laziness
-local function get_refined_note_from_param2(param2, instrument)
-    local rawnote, octave = param2_to_note_octave(param2, instrument)
-    return get_refined_note(rawnote, octave, instrument)
-end
+-- if given a note table and an instrument, returns a saveable param2
+tph_notenode.convert_note_to_param2 = convert_note
 
 ----------
 -- more node-ish functions
@@ -599,7 +573,7 @@ local function notenode_play_instrument(pos, node, instrument, note, player)
     if not ndef.notenode_get_instrument then return end -- no instrument function huuuh
     -- get instrument + note
     instrument = instrument or ndef.notenode_get_instrument(pos, node)
-    note = note or get_refined_note_from_param2(node.param2, instrument)
+    note = note or get_note(node.param2, instrument)
     if not note then return end
     -- play and particle
     --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
@@ -626,8 +600,7 @@ local nbdef = { -- notenode definition
         local ndef = core.registered_nodes[node.name]
         -- get instrument to adequately get appropriate param2
         local instrument = ndef.notenode_get_instrument(pos, node)
-        local basenote = instrument.basenotes[1]
-        node.param2 = note_octave_to_param2(instrument, basenote)
+        node.param2 = convert_note(instrument.basenotes[1], instrument)
         core.swap_node(pos, node)
     end,
     -- pos, node, below pos, below node
@@ -651,24 +624,12 @@ local nbdef = { -- notenode definition
         -- treble for higher, bass for lower
         local addparam2 = staff == "treble" and 1 or staff == "bass" and -1
         node.param2 = node.param2 + addparam2
-        -- clamp between 0 and 251
-        --node.param2 = math.min(math.max(node.param2,0), 251)
         -- get instrument + rawnote + octave
         local instrument = ndef.notenode_get_instrument(pos, node)
-        -- preemptively clamp param2 between instrument parameters (not necessary but it makes it easier)
-        -- too low! go all the way back up!
-        if node.param2 < 0 then
-            node.param2 = #instrument.notes+11
-        -- too high! go all the way back down
-        elseif node.param2 >= #instrument.notes then
-            node.param2 = 0
-        end
-        -- get rawnote value and octave
-        local rawnote, octave = param2_to_note_octave(node.param2, instrument)
         -- get note for playing
-        local note = get_refined_note(rawnote, octave, instrument)
+        local note = get_note(node.param2, instrument)
         -- update param2 and swap the node
-        node.param2 = note_octave_to_param2(instrument, note)
+        node.param2 = convert_note(note, instrument)--note_octave_to_param2(instrument, note)
         -- play
         ndef.notenode_play_instrument(pos, node, instrument, note, clicker)
         core.swap_node(pos, node)
@@ -684,9 +645,8 @@ local nbdef = { -- notenode definition
         -- get instrument to adequately get appropriate param2
         local ndef = core.registered_nodes[oldnode.name]
         local instrument = ndef.notenode_get_instrument(pos, oldnode)
-        -- calculate baseparam2 from basenote
-        local basenote = instrument.basenotes[1]
-        local baseparam2 = note_octave_to_param2(instrument, basenote)
+        -- calculate baseparam2 from middle C
+        local baseparam2 = convert_note(instrument.basenotes[1], instrument)
         -- don't save this, equals middle C's param2 conversion
         if oldnode.param2 == baseparam2 then
             -- actually, exilev4 has a unique conundrum they've given us!
@@ -703,7 +663,7 @@ local nbdef = { -- notenode definition
         local imeta = stack:get_meta()
         if not imeta then return end -- failed to get meta
         -- add notename to description
-        local cnote = instrument.notes[oldnode.param2+1] -- current note
+        local cnote = get_note(oldnode.param2, instrument) -- current note
         if (cnote and cnote.name ~= "C") then
             imeta:set_string("description", S("Notenode @1", cnote.name))
         end
