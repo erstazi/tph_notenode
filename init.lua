@@ -820,8 +820,6 @@ end
 if depends.voxelibre or depends.mineclonia then
     -- transmits power beyond our node
     nbdef.groups.opaque = 1
-    -- crafting
-    noteblock_craft()
 end
 
 -- mineclonia support
@@ -902,28 +900,6 @@ if depends.aom then
     end
 end
 
--- repixture support
-if depends.rpx then
-    -- crafting
-    -- device
-    crafting.register_craft({
-        output = "tph_notenode:device",
-        items = {
-            "rp_default:ingot_wrought_iron 4",
-            "rp_default:ingot_steel", -- used as a "power" cause idk the rarity of jewels and lumien
-            "rp_default:ingot_copper 3"
-        }
-    })
-    -- notenode
-    crafting.register_craft({
-        output = "tph_notenode:notenode",
-        items = {
-            "tph_notenode:device",
-            "group:planks 4"
-        }
-    })
-end
-
 -- exile support
 if depends.exile then
     -- have it so it's protected upon place
@@ -944,9 +920,14 @@ if depends.mesecons then
             end
         }
     }
-    -- crafting
-    noteblock_craft()
 end
+
+-- register stuff prior to crafting
+
+-- register notenode
+core.register_node("tph_notenode:notenode", nbdef)
+-- register device node
+core.register_node("tph_notenode:device", devicedef)
 
 -- non-luanti crafting
 if NLC then
@@ -1008,17 +989,35 @@ if NLC then
             group = "planks",
             group_count = 4
         })
+    -- repixture crafting
+    elseif depends.rpx then
+        -- device
+        crafting.register_craft({
+            output = "tph_notenode:device",
+            items = {
+                "rp_default:ingot_wrought_iron 4",
+                "rp_default:ingot_steel", -- used as a "power" cause idk the rarity of jewels and lumien
+                "rp_default:ingot_copper 3"
+            }
+        })
+        -- notenode
+        crafting.register_craft({
+            output = "tph_notenode:notenode",
+            items = {
+                "tph_notenode:device",
+                "group:planks 4"
+            }
+        })
     end
 -- expected luanti-esque crafting
 else
+    -- run a function that allows crafting from a premade noteblock
+    if depends.mineclonia or depends.voxelibre or depends.mesecons then
+        noteblock_craft()
+    end
     -- lazily run a function that handles overall crafting
     base_craft()
 end
-
--- register notenode
-core.register_node("tph_notenode:notenode", nbdef)
--- register device node
-core.register_node("tph_notenode:device", devicedef)
 
 -- set custom instruments UGH - no usable or sensible groups!
 core.register_on_mods_loaded(function()
