@@ -10,10 +10,37 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
+-- get_current_modname but provides a string on nil
+local function get_cmn()
+    return core.get_current_modname() or "??"
+end
+
+-- used to quickly make an unwritable metatable data
+-- indexing is a table to be indexed
+-- indexingdesc is the name/description of the table (unnecessary to provide if errmsg is specified)
+-- errmsg is not required if indexingname is specified
+local function create_unwritable(indexing, indexingdesc, errmsg)
+    if not errmsg then
+        errmsg = "tph_notenode: writing to "..indexingdesc.." is unsupported."
+    end
+    return setmetatable({},{
+        __index = function(data, key)
+            return indexing[key]
+        end,
+        __newindex = function(data, key, value)
+            errmsg = errmsg.." Blocked write from mod: "..get_cmn()
+            error(errmsg)
+        end
+    })
+end
+
+tph_notenode = {}
+
 -- translator functionality
 local S = core.get_translator("tph_notenode")
 
 -- mod support
+-- these are only ever used as truthy and should not be used for non-boolean purposes
 local depends = {
     -- games
     default = core.get_modpath("default"), -- minetest, mesecraft
@@ -33,6 +60,12 @@ local depends = {
 depends.exilev4 = depends.exile and core.get_modpath("mapchunk_shepherd")
 
 local NLC = (depends.nodecore or depends.exile or depends.aom or depends.rpx) and true or false -- non-luanti crafting
+depends.NLC = NLC
+
+-- add to tph_notenode for mod usage, prevent writing
+-- indexing, indexingname, errmsg
+tph_notenode.depends = create_unwritable(depends, nil,
+  "tph_notenode: writing to depends table is unsupported. Please contact TPH for adding new depends.")
 
 
 -- notes 1 to 12
@@ -41,8 +74,21 @@ local notenames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "
 local notecolours = {"#ff0000","#ff8000","#ffff00","#80ff00","#00ff00","#00ff80","#00ffff", -- C - F
   "#0080ff","#0000ff","#7f00ff","#ff00ff","#ff0080"} -- F# to B
 
+-- make notesdata metatable
+do
+    local notesdata = {}
+    -- notes 1 to 12 (C to B), indexed in such a way
+    notesdata.names = create_unwritable(notenames, "nodedata.names")
+    -- colours associated to the named notes
+    notesdata.colours = create_unwritable(notecolours, "notedata.colours")
+    -- now to metatable notesdata
+    tph_notenode.notesdata = create_unwritable(notesdata, "notesdata table")
+end
+
 -- registered unique instruments
 local instruments = {}
+
+tph_notenode.registered_instruments = create_unwritable(instruments, "registered instruments")
 
 -- list of instruments to play for specific groups
 local play_for_group = {}
