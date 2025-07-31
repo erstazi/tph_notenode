@@ -368,31 +368,6 @@ end
 -- only permit the purified version to be accessed
 tph_notenode.get_instrument = get_instrument
 
--- ditto to both of the above, except it's the expected notenode's get_instrument functionality
--- permits getting meta from node core stacks - including non-nodes
-local function notenode_get_instrument(pos, node, bpos, bnode)
-    -- below
-    if not bpos then
-        bpos = vector.new(pos)
-        bpos.y = bpos.y - 1
-    end
-    bnode = bnode or core.get_node(bpos)
-    -- nodecore unique
-    -- get the node from the itemstack actually!
-    if bnode.name == "nc_items:stack" then
-        local meta = core.get_meta(bpos)
-        local item = ItemStack(meta:get_string("ncitem"))
-        local def = item:get_definition()
-        if def then
-            bnode.name = def.name
-        end
-    end
-    -- return instrument corresponding to below node
-    return get_instrument(bpos, bnode)
-end
-
-tph_notenode.notenode_get_instrument = notenode_get_instrument
-
 --
 -- spawns a little eighth note above the notenode
 
@@ -521,6 +496,33 @@ local function get_refined_note_from_param2(param2, instrument)
     return get_refined_note(rawnote, octave, instrument)
 end
 
+----------
+-- more node-ish functions
+
+-- get whether or not this is a treble or clef - with options for "bottom" and "top"
+-- if staffonly is true, do not return "bottom" or "top"
+local function get_staff_from_pointed_thing(pointed_thing, staffonly)
+    -- some games do really weird stuff and don't properly send over a pointed_thing, return
+    if not (type(pointed_thing) == "table" and pointed_thing.type == "node" and
+      pointed_thing.under and pointed_thing.above) then return end
+    -- where the node was clicked
+    local face = (pointed_thing.above + pointed_thing.under)/2
+    local pos = pointed_thing.under
+    -- check if we should decrease or increase the pitch of notes, or not
+    local staff = ( face.x == (pos.x - 0.5) or face.z == (pos.z - 0.5) ) and "treble" or
+      -- bass
+      ( face.x == (pos.x + 0.5) or face.z == (pos.z + 0.5) ) and "bass"
+    -- return top or bottom
+    if not (staff and staffonly) then
+        -- top
+        staff = face.y == (pos.y + 0.5) and "top" or
+        -- bottom
+        face.y == (pos.y - 0.5) and "bottom"
+    end
+    -- return
+    return staff
+end
+
 --------------------------------
 -- CREATING THE NOTENODE NODE
 
@@ -563,6 +565,52 @@ local function get_node_sound(is_device)
     end
 end
 
+----------
+-- notenode functions
+
+-- ditto to get_instrument function, except it's the expected notenode's get_instrument functionality
+-- permits getting meta from node core stacks - including non-nodes
+local function notenode_get_instrument(pos, node, bpos, bnode)
+    -- below
+    if not bpos then
+        bpos = vector.new(pos)
+        bpos.y = bpos.y - 1
+    end
+    bnode = bnode or core.get_node(bpos)
+    -- nodecore unique
+    -- get the node from the itemstack actually!
+    if bnode.name == "nc_items:stack" then
+        local meta = core.get_meta(bpos)
+        local item = ItemStack(meta:get_string("ncitem"))
+        local def = item:get_definition()
+        if def then
+            bnode.name = def.name
+        end
+    end
+    -- return instrument corresponding to below node
+    return get_instrument(bpos, bnode)
+end
+
+tph_notenode.notenode_get_instrument = notenode_get_instrument
+
+local function notenode_play_instrument(pos, node, instrument, note, player)
+    node = node or core.get_node(pos)
+    local ndef = core.registered_nodes[node.name]
+    if not ndef.notenode_get_instrument then return end -- no instrument function huuuh
+    -- get instrument + note
+    instrument = instrument or ndef.notenode_get_instrument(pos, node)
+    note = note or get_refined_note_from_param2(node.param2, instrument)
+    if not note then return end
+    -- play and particle
+    --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
+    core.sound_play(instrument.sound, {
+        max_hear_distance = 48, pitch = note.val, pos = pos, gain = instrument.gain
+    })
+    noteparticle(pos, note, instrument)
+end
+
+tph_notenode.notenode_play_instrument = notenode_play_instrument
+
 
 local nbdef = { -- notenode definition
     description = S("Notenode"),
@@ -584,21 +632,7 @@ local nbdef = { -- notenode definition
     end,
     -- pos, node, below pos, below node
     notenode_get_instrument = notenode_get_instrument,
-    notenode_play_instrument = function(pos, node, instrument, note, player)
-        node = node or core.get_node(pos)
-        local ndef = core.registered_nodes[node.name]
-        if not ndef.notenode_get_instrument then return end -- no instrument function huuuh
-        -- get instrument + note
-        instrument = instrument or ndef.notenode_get_instrument(pos, node)
-        note = note or get_refined_note_from_param2(node.param2, instrument)
-        if not note then return end
-        -- play and particle
-        --core.log(note.name.." : "..note.hertz.." : "..note.octave.." ;; "..note.val)
-        core.sound_play(instrument.sound, {
-            max_hear_distance = 48, pitch = note.val, pos = pos, gain = instrument.gain
-        })
-        noteparticle(pos, note, instrument)
-    end,
+    notenode_play_instrument = notenode_play_instrument,
     on_punch = function(pos, node, puncher, pointed_thing)
         local ndef = core.registered_nodes[node.name]
         ndef.notenode_play_instrument(pos, node)
@@ -609,38 +643,35 @@ local nbdef = { -- notenode definition
             -- protected, return
             if core.is_protected(pos, clicker:get_player_name()) then return end
         end
-        -- some games do really weird stuff and don't properly send over a pointed_thing, return
-        if not (pointed_thing and pointed_thing.type == "node") then return end
+        -- treble or bass
+        local staff = get_staff_from_pointed_thing(pointed_thing, true)
+        if not staff then return end
+        -- get node definition
         local ndef = core.registered_nodes[node.name]
-        -- where the node was clicked
-        local face = (pointed_thing.above + pointed_thing.under)/2
-        -- check if we should decrease or increase the pitch of notes, or not
-        local staff = ( face.x == (pos.x - 0.5) or face.z == (pos.z - 0.5) ) and "treble" or
-          ( face.x == (pos.x + 0.5) or face.z == (pos.z + 0.5) ) and "bass"
-        -- ditto
-        local addparam2 = (staff == "bass" or staff == "treble") and
-          (staff == "treble" and 1 or staff == "bass" and -1)
-        if addparam2 then
-            node.param2 = node.param2 + addparam2
-            -- clamp between 0 and 251
-            --node.param2 = math.min(math.max(node.param2,0), 251)
-            -- get instrument + rawnote + octave
-            local instrument = ndef.notenode_get_instrument(pos, node)
-            -- clamp param2 between instrument parameters
-            if node.param2 < 0 then
-                node.param2 = #instrument.notes+11
-            elseif node.param2 >= #instrument.notes then
-                node.param2 = 0
-            end
-            local rawnote, octave = param2_to_note_octave(node.param2, instrument)
-            -- get note for playing
-            local note = get_refined_note(rawnote, octave, instrument)
-            -- update param2 and swap the node
-            node.param2 = note_octave_to_param2(instrument, note)
-            -- play
-            ndef.notenode_play_instrument(pos, node, instrument, note, clicker)
-            core.swap_node(pos, node)
+        -- treble for higher, bass for lower
+        local addparam2 = staff == "treble" and 1 or staff == "bass" and -1
+        node.param2 = node.param2 + addparam2
+        -- clamp between 0 and 251
+        --node.param2 = math.min(math.max(node.param2,0), 251)
+        -- get instrument + rawnote + octave
+        local instrument = ndef.notenode_get_instrument(pos, node)
+        -- preemptively clamp param2 between instrument parameters (not necessary but it makes it easier)
+        -- too low! go all the way back up!
+        if node.param2 < 0 then
+            node.param2 = #instrument.notes+11
+        -- too high! go all the way back down
+        elseif node.param2 >= #instrument.notes then
+            node.param2 = 0
         end
+        -- get rawnote value and octave
+        local rawnote, octave = param2_to_note_octave(node.param2, instrument)
+        -- get note for playing
+        local note = get_refined_note(rawnote, octave, instrument)
+        -- update param2 and swap the node
+        node.param2 = note_octave_to_param2(instrument, note)
+        -- play
+        ndef.notenode_play_instrument(pos, node, instrument, note, clicker)
+        core.swap_node(pos, node)
     end,
     -- save param2 if it's different from middle C
     preserve_metadata = function(pos, oldnode, oldmeta, drops)
