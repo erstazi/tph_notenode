@@ -82,7 +82,17 @@ do
     -- colours associated to the named notes
     notesdata.colours = create_unwritable(notecolours, "notedata.colours")
     -- now to metatable notesdata
-    tph_notenode.notesdata = create_unwritable(notesdata, "notesdata table")
+    tph_notenode.notesdata = setmetatable({}, {
+        __index = function(t, key)
+            local value = key == "names" and notenames or
+              key == "colours" and notecolours or
+              notesdata[key]
+            return type(value) == "table" and table.copy(value) or value
+        end,
+        __newindex = function(t, key, value)
+            error("tph_notenode: writign to notesdata table is unsupported. Blocked write from mod: "..get_cmn())
+        end
+    })
 end
 
 -- registered unique instruments
@@ -340,6 +350,8 @@ local function get_instrument_raw(pos, node, ndef)
 end
 
 -- ditto to the above function, except this returns a default instrument on failure
+-- pos, node table, node definition
+-- only actually needs node definition, but permits a pos and node argument
 local function get_instrument(pos, node, ndef)
     local inst = get_instrument_raw(pos, node, ndef)
     if not inst then
@@ -353,8 +365,11 @@ local function get_instrument(pos, node, ndef)
     end
     return inst
 end
+-- only permit the purified version to be accessed
+tph_notenode.get_instrument = get_instrument
 
 -- ditto to both of the above, except it's the expected notenode's get_instrument functionality
+-- permits getting meta from node core stacks - including non-nodes
 local function notenode_get_instrument(pos, node, bpos, bnode)
     -- below
     if not bpos then
@@ -375,6 +390,8 @@ local function notenode_get_instrument(pos, node, bpos, bnode)
     -- return instrument corresponding to below node
     return get_instrument(bpos, bnode)
 end
+
+tph_notenode.notenode_get_instrument = notenode_get_instrument
 
 --
 -- spawns a little eighth note above the notenode
