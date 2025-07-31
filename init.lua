@@ -224,47 +224,12 @@ local function register_instrument(name, def, groups, noteC)
     instruments[name] = def
     -- create a "public definition" to prevent any potential overwrites while allowing instrument access
     local pubdef = {}
-    for ind,data in pairs(def) do
-        if type(data) == "table" then
-            -- craft an error message
-            local errmsg = type(data) == "table" and data.hertz and
-              "tph_notenode: cannot modify note tables!"
-            -- create custom error message tag;
-            -- e.g: donk.octave_range
-            local tag = not errmsg and (name.."."..ind)
-            errmsg = errmsg or
-              "tph_notenode: not permitted to modify "..tag.."."
-            errmsg = errmsg.." Blocked write from mod: "
-            -- now create the public definition's custom index
-            pubdef[ind] = {}
-            -- oh no, MORE tables!
-            for ind2,data2 in pairs(data) do -- "2nd pair" of index+data, what's inside data
-                -- ditto to later on, but this is literally only used for notes lol
-                if type(data2) == "table" then
-                    -- craft again...
-                    local errmsg2 = type(data2) == "table" and data2.hertz and
-                      "tph_notenode: cannot modify note tables!"
-                    -- now metatable it because we're not looking any further!
-                    pubdef[ind][ind2] = create_unwritable(data2, (not errmsg and tag.."."..ind2), errmsg2)
-                end
-            end
-            -- make this table impossible to write to
-            pubdef[ind] = setmetatable({}, {
-                __index = function(t, key)
-                    local value = data[key]
-                    return type(value) == "table" and pubdef[key] or def[key]
-                end,
-                __newindex = function(t, key, value)
-                    error(errmsg)
-                end
-            })
-        end
-    end
     -- make this public definition unwritable
     public_instruments[name] = setmetatable({}, {
         __index = function(t, key)
             local value = def[key]
-            return type(value) == "table" and pubdef[key] or value
+            -- copy table to prevent modifications due to Lua 5.1 issues with length getting and iterating
+            return type(value) == "table" and table.copy(value) or value
         end,
         __newindex = function(t, key, value)
             error("tph_notenode: registered_instruments violation; not permitted to write to '"..name..
@@ -317,10 +282,6 @@ if depends.ncbells then
       octrange={4,3}
       })
 end
-
---tph_notenode.registered_instruments["donk"].basenotes[1].octave = "e"
---core.log("donk check")
---core.log(#tph_notenode.registered_instruments["donk"].notes)
 
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
