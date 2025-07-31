@@ -148,19 +148,16 @@ local function register_instrument(name, def, groups, noteC)
     -- use math.abs and math.ceil to prevent negative numbers and only permit integers
     -- use math.min to clamp below a difference of 10
     local octrange = def.octrange or {}
-    -- lower octave (default: -2)
+    -- lower octave (default: -2) -- ensure you use a positive number when defining it though!
     octrange[1] = type(octrange[1]) == "number" and math.min(math.abs(math.ceil(octrange[1])), 10) or 2
-    octrange[1] = noteC.octave - octrange[1]
     -- higher octave (default: +2)
     octrange[2] = type(octrange[2]) == "number" and math.min(math.abs(math.ceil(octrange[2])), 10) or 2
-    octrange[2] = noteC.octave + octrange[2]
     -- fill the notes
     -- there can only be a total of 252 notes, below param2's max of 256
     local notes = {}
     -- lower fill
-    if octrange[1] ~= noteC.octave then
-        local numbocts = math.abs(octrange[1] - noteC.octave) -- number octaves - how many octaves to generate
-        for i=numbocts,1,-1 do -- go down
+    if octrange[1] ~= 0 then
+        for i=octrange[1],1,-1 do -- go down
             local oct = noteC.octave - i -- octave for this particular round
             for _,note in ipairs(basenotes) do
                 -- hertz is base hertz divided by 2 ^ i times
@@ -176,9 +173,8 @@ local function register_instrument(name, def, groups, noteC)
         notes[#notes + 1] = table.copy(note)
     end
     -- higher fill
-    if octrange[2] ~= noteC.octave then
-        local numbocts = math.abs(octrange[2] - noteC.octave) -- ditto
-        for i=1,numbocts do -- go up
+    if octrange[2] ~= 0 then
+        for i=1, octrange[2] do -- go up
             local oct = noteC.octave + i -- ditto
             for _,note in ipairs(basenotes) do
                 -- hertz is base hertz times 2 ^ i
@@ -188,13 +184,16 @@ local function register_instrument(name, def, groups, noteC)
                 -- engine doesn't support pitches over 10x, break production
                 if new.val > 10.2 then
                     -- cap octave range
-                    octrange[2] = octrange[2] - (numbocts - i)
+                    octrange[2] = octrange[2] - (octrange[2] - i)
                     break
                 end
                 notes[#notes + 1] = new
             end
         end
     end
+    -- finally calculate octave range
+    octrange[1] = noteC.octave - octrange[1]
+    octrange[2] = noteC.octave + octrange[2]
     -- figure out groups if specified
     groups = type(groups) == "string" and {groups} or groups
     -- add to play_for_group
