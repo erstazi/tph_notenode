@@ -284,6 +284,8 @@ register_instrument(nil, "tph_notenode_claen", {"ice", "pottery", depends.aom an
 register_instrument(nil, "tph_notenode_mwuu", "air")
 -- papery percussion sound (made from me hitting a paper recyclable bag)
 register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
+-- metallic twang kinda sound, made from flicking at a small cooking pot
+register_instrument(nil, "tph_notenode_tintling", "copper")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1111,7 +1113,8 @@ core.register_on_mods_loaded(function()
         claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on", "rp_lumien:crystal_on",
           "rp_lumien:crystal_off"},
         mwuu = {"air"},
-        couke = {"aom_stone:ironstone_brick"}
+        couke = {"aom_stone:ironstone_brick"},
+        tintling = {"default:bronzeblock"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
