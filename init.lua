@@ -286,6 +286,8 @@ register_instrument(nil, "tph_notenode_mwuu", "air")
 register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
 -- metallic twang kinda sound, made from flicking at a small cooking pot
 register_instrument(nil, "tph_notenode_tintling", "copper")
+-- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
+register_instrument(nil, "tph_notenode_pbauve", {"snowy", "snow"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
