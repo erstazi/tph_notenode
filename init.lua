@@ -490,8 +490,8 @@ local function get_staff_from_pointed_thing(pointed_thing, staffonly)
     local staff = ( face.x == (pos.x - 0.5) or face.z == (pos.z - 0.5) ) and "treble" or
       -- bass
       ( face.x == (pos.x + 0.5) or face.z == (pos.z + 0.5) ) and "bass"
-    -- return top or bottom
-    if not (staff and staffonly) then
+    -- return top or bottom (if staffonly isn't specified)
+    if not staff and not staffonly then
         -- top
         staff = face.y == (pos.y + 0.5) and "top" or
         -- bottom
@@ -1116,7 +1116,8 @@ core.register_on_mods_loaded(function()
           "rp_lumien:crystal_off"},
         mwuu = {"air"},
         couke = {"aom_stone:ironstone_brick"},
-        tintling = {"default:bronzeblock"}
+        tintling = {"default:bronzeblock", "tech:trapdoor_iron", "artifacts:trapdoor_antiquorium"},
+        pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
