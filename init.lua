@@ -100,7 +100,8 @@ local instruments = {} -- raw data
 -- public access variant of the above
 local public_instruments = {}
 
-tph_notenode.registered_instruments = create_unwritable(public_instruments, "registered instruments")
+-- setting a metatable prevents iteration
+tph_notenode.registered_instruments = {}
 
 -- list of instruments to play for specific groups
 local play_for_group = {}
@@ -288,6 +289,8 @@ register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
 register_instrument(nil, "tph_notenode_tintling", "copper")
 -- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
 register_instrument(nil, "tph_notenode_pbauve", {"snowy", "snow"})
+-- note
+register_instrument(nil, "tph_notenode_shieng")
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1117,7 +1120,8 @@ core.register_on_mods_loaded(function()
         mwuu = {"air"},
         couke = {"aom_stone:ironstone_brick"},
         tintling = {"default:bronzeblock", "tech:trapdoor_iron", "artifacts:trapdoor_antiquorium"},
-        pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"}
+        pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"},
+        shieng = {"default:diamondblock"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
