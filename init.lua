@@ -264,7 +264,7 @@ register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", 
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
 register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
-register_instrument(nil, "tph_notenode_bvogne", {lowprty=6, "tree", "log", "material_wood", "wood"})
+register_instrument(nil, "tph_notenode_bvogne", {lowprty=6, "tree", "log"})
 -- simple hit sound (made from dragging a finger across a zipper)
 register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone", "material_stone", "boulder",
   "cobble", depends.exile and "masonry"})
@@ -289,8 +289,10 @@ register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
 register_instrument(nil, "tph_notenode_tintling", "copper")
 -- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
 register_instrument(nil, "tph_notenode_pbauve", {"snowy", "snow"})
--- note
+-- metal whack sound, like a "celeste at home" (made from banging metal coathangers together)
 register_instrument(nil, "tph_notenode_shieng")
+-- guitar-y - similar to bvogne (made from playing a spread-out lace from a weather jacket)
+register_instrument(nil, "tph_notenode_dvogne", {lowprty=8, "material_wood", "wood", "planks"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
