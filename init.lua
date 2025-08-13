@@ -134,7 +134,10 @@ local function register_instrument(name, def, groups, noteC)
         error("tph_notenode: '"..name.."' is an already registered instrument! Please name your instrument something else.")
     end
     -- volume
-    def.gain = type(def.gain) == "number" and def.gain > 0 and def.gain or 1
+    def.gain = type(def.gain) == "number" and def.gain or type(def.vol) == "number" and def.vol
+    if def.vol then def.vol = nil end -- remove vol from definition
+    -- if def.gain, check if over 0, then be gain or default to 0.6
+    def.gain = def.gain and def.gain > 0 and def.gain or 0.6
     -- noteC (middle C note)
     noteC = type(noteC) == "table" and noteC or {}
     -- hertz! be sure you properly tune it to be C!
@@ -262,16 +265,16 @@ register_instrument(nil, "tph_notenode_klalk", "glass")
 register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey",
   "ironstone", depends.rpx and "ingot"})
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
-register_instrument(nil, "tph_notenode_dwoite", {"refined_tin", depends.nodecore and "adobe"})
+register_instrument(nil, {sound="tph_notenode_dwoite", vol=1}, {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
-register_instrument(nil, "tph_notenode_bvogne", {lowprty=6, "tree", "log"})
+register_instrument(nil, {sound="tph_notenode_bvogne", vol=1}, {lowprty=6, "tree", "log"})
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, "tph_notenode_blipck", {lowprty=12, "stone", "material_stone", "boulder",
+register_instrument(nil, {sound="tph_notenode_blipck", vol=1}, {lowprty=12, "stone", "material_stone", "boulder",
   "cobble", depends.exile and "masonry"})
 -- bamboo-y (hit actual bamboo)
-register_instrument(nil, "tph_notenode_ghlick", {"sapling", "bamboo_block", "woody_plant"})
+register_instrument(nil, {sound="tph_notenode_ghlick", gain=1}, {"sapling", "bamboo_block", "woody_plant"})
 -- watery (made from moving around in a bathtub of water)
-register_instrument(nil, "tph_notenode_llorlk", "water")
+register_instrument(nil, {sound="tph_notenode_llorlk", vol=0.8}, "water")
 -- air-y (made from blowing into a glass bottle, 2x pitch)
 register_instrument(nil, "tph_notenode_oouve", {"clay", "flutey"})
 -- bell-ish (made from flicking at a glass bottle)
@@ -288,11 +291,11 @@ register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
 -- metallic twang kinda sound, made from flicking at a small cooking pot
 register_instrument(nil, "tph_notenode_tintling", "copper")
 -- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
-register_instrument(nil, "tph_notenode_pbauve", {"snowy", "snow"})
+register_instrument(nil, {sound="tph_notenode_pbauve", vol=0.4}, {"snowy", "snow"})
 -- metal whack sound, like a "celeste at home" (made from banging metal coathangers together)
-register_instrument(nil, "tph_notenode_shieng")
+register_instrument(nil, {sound="tph_notenode_shieng", vol=0.35})
 -- guitar-y - similar to bvogne (made from playing a spread-out lace from a weather jacket)
-register_instrument(nil, "tph_notenode_dvogne", {lowprty=8, "material_wood", "wood", "planks"})
+register_instrument(nil, {sound="tph_notenode_dvogne", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
