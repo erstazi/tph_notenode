@@ -287,7 +287,7 @@ register_instrument(nil, "tph_notenode_claen", {"ice", "pottery", depends.aom an
 -- whistley sound (made from me blowing a whistle with my mouth)
 register_instrument(nil, "tph_notenode_mwuu", "air")
 -- papery percussion sound (made from me hitting a paper recyclable bag)
-register_instrument(nil, "tph_notenode_ktaut", {"gravel", "item_gravel"})
+register_instrument(nil, {sound="tph_notenode_ktaut", vol=0.4}, {"gravel", "item_gravel"})
 -- metallic twang kinda sound, made from flicking at a small cooking pot
 register_instrument(nil, "tph_notenode_tintling", "copper")
 -- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
@@ -296,6 +296,8 @@ register_instrument(nil, {sound="tph_notenode_pbauve", vol=0.4}, {"snowy", "snow
 register_instrument(nil, {sound="tph_notenode_shieng", vol=0.35})
 -- guitar-y - similar to bvogne (made from playing a spread-out lace from a weather jacket)
 register_instrument(nil, {sound="tph_notenode_dvogne", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
+-- soft brassy trumpet-ish sound (made from shaping a blowing of air with my mouth)
+register_instrument(nil, "tph_notenode_oauwre", {lowprty=3, "flora", "fibrous_plant"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -350,7 +352,10 @@ local function get_instrument_raw(pos, node, ndef)
                 -- old (low) priority, current (low) priority
                 local oprty, cprty = cinstrument.choice_priority, instrument.choice_priority or 0
                 -- not to continue looking for more instruments if no low priority specified, break
-                if cprty == 0 then break end
+                if cprty == 0 then
+                    cinstrument = instrument -- we choose the one with no low priority specified (higher priority)
+                    break
+                end
                 -- replace with higher priority (lower number)
                 if cprty < oprty then
                     cinstrument = instrument
