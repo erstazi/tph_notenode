@@ -1121,9 +1121,9 @@ core.register_on_mods_loaded(function()
           "rp_lumien:crystal_off"},
         mwuu = {"air"},
         couke = {"aom_stone:ironstone_brick"},
-        tintling = {"default:bronzeblock", "tech:trapdoor_iron", "artifacts:trapdoor_antiquorium"},
+        tintling = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
         pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"},
-        shieng = {"default:diamondblock"}
+        shieng = {"default:diamondblock", "artifacts:trapdoor_antiquorium"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -1145,6 +1145,8 @@ core.register_on_mods_loaded(function()
                     do_override(nname, "blipck")
                 elseif nname:match("_mg_") then
                     do_override(nname, "gliurk")
+                elseif nname:match("wooden_") then
+                    do_override(nname, "dvogne")
                 elseif node.mod_origin == "tech" and nname:match("iron") then
                     do_override(nname, "couke")
                 elseif type(node.drop) == "string" and node.drop:match(":clay") then
