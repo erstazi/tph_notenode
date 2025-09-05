@@ -298,6 +298,8 @@ register_instrument(nil, {sound="tph_notenode_shieng", vol=0.35})
 register_instrument(nil, {sound="tph_notenode_dvogne", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
 -- soft brassy trumpet-ish sound (made from shaping a blowing of air with my mouth)
 register_instrument(nil, "tph_notenode_oauwre", {lowprty=3, "flora", "fibrous_plant"})
+-- ringing chime/bell sound (made from finger-flicking a small iron horseshoe)
+register_instrument(nil, "tph_notenode_taong", {"chime"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1131,7 +1133,8 @@ core.register_on_mods_loaded(function()
         couke = {"aom_stone:ironstone_brick"},
         tintling = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
         pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"},
-        shieng = {"default:diamondblock", "artifacts:trapdoor_antiquorium"}
+        shieng = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
+        taong = {"xpanes:bar_flat"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
