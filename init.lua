@@ -220,11 +220,22 @@ local function register_instrument(name, def, groups, noteC)
             def.choice_priority = lowprty
             groups.lowprty = nil
         end
+        -- our own playing groups
+        def.playing_groups = {}
         -- iterate through specified groups
         for _,grpname in ipairs(groups) do
             -- play this instrument for this group
             if type(grpname) == "string" then
+                local oldstrument = play_for_group[grpname] -- if another instrument exists here
+                oldstrument = oldstrument and instruments[oldstrument]
+                -- erase this group from old instrument's list of playing
+                if oldstrument and oldstrument.playing_groups then
+                    oldstrument.playing_groups[grpname] = nil
+                end
+                -- add or replace the group with ourselves
                 play_for_group[grpname] = name
+                -- add to our own little groups table
+                def.playing_groups[grpname] = true
             end
         end
     end
@@ -237,7 +248,6 @@ local function register_instrument(name, def, groups, noteC)
     def.octave_range = octrange
     instruments[name] = def
     -- create a "public definition" to prevent any potential overwrites while allowing instrument access
-    local pubdef = {}
     -- make this public definition unwritable
     public_instruments[name] = setmetatable({}, {
         __index = function(t, key)
