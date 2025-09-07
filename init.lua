@@ -310,6 +310,8 @@ register_instrument(nil, {sound="tph_notenode_dvogne", vol=1}, {lowprty=8, "mate
 register_instrument(nil, "tph_notenode_oauwre", {lowprty=3, "flora", "fibrous_plant"})
 -- ringing chime/bell sound (made from finger-flicking a small iron horseshoe)
 register_instrument(nil, "tph_notenode_taong", {"chime"})
+-- bassy organ-like sound (made from me humming weirdly, but heavily edited)
+register_instrument(nil, "tph_notenode_bvauouve", {"coalblock", "organ"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1144,7 +1146,8 @@ core.register_on_mods_loaded(function()
         tintling = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
         pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"},
         shieng = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
-        taong = {"xpanes:bar_flat"}
+        taong = {"xpanes:bar_flat"},
+        bvauouve = {"default:coalblock"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
