@@ -312,6 +312,8 @@ register_instrument(nil, "tph_notenode_oauwre", {lowprty=3, "flora", "fibrous_pl
 register_instrument(nil, "tph_notenode_taong", {"chime"})
 -- bassy organ-like sound (made from me humming weirdly, but heavily edited)
 register_instrument(nil, "tph_notenode_bvauouve", {"coalblock", "organ"})
+-- sawtooth sound (made from me humming with my teeth, heavily edited)
+register_instrument(nil, "tph_notenode_bveap", {"meseblock"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1147,7 +1149,8 @@ core.register_on_mods_loaded(function()
         pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"},
         shieng = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
         taong = {"xpanes:bar_flat"},
-        bvauouve = {"default:coalblock"}
+        bvauouve = {"default:coalblock"},
+        bveap = {"default:mese"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
