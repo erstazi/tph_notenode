@@ -339,7 +339,7 @@ if depends.exile then
     register_instrument("exilebell", "artifacts_bell")
 end
 if depends.exilev4 then
-    register_instrument("exilesingstone", "artifacts_singing_stone")
+    register_instrument("exilesingstone", "artifacts_singing_stone", {hertz=260})
 end
 -- mod-specific instruments
 if depends.ncbells then
@@ -800,6 +800,62 @@ for i=1,6 do
           (i==3 or i==5) and "tph_notenode_bass.png") -- lower pitch
     end
     nbdef.tiles[i] = tile
+end
+
+-- exile, add a new function
+if depends.exile then
+    -- position hashes of actively playing, debounce of 0.5
+    local active = {}
+    -- what we'll call on `on_punch` instead
+    nbdef.notenode_exile_on_alight = function(pos, node, ndef)
+        local poshash = core.hash_node_position(pos)
+        if active[poshash] then return end -- currently playing!
+        node = node or core.get_node(pos)
+        ndef = ndef or core.registered_nodes[node.name]
+        if ndef.name ~= "tph_notenode:notenode" then return end -- NOT a notenode!
+        ndef.notenode_play_instrument(pos, node)
+        -- add to active
+        active[poshash] = true
+        -- remove from active after 1sec
+        core.after(1, function()
+            active[poshash] = nil
+        end)
+        -- play a different node
+        --if math.random()<0.15 then return end -- 15% chance of not playing nearby nodes
+        -- found nodes
+        local fnodes = core.find_nodes_in_area({x=pos.x-1, y=pos.y-1, z=pos.z-1},
+          {x=pos.x+1, y=pos.y+1, z=pos.z+1}, {"tph_notenode:notenode"})
+        if #fnodes == 0 then return end -- don't do anything
+        -- actually found some neighbours!
+        local playchance = 1 -- chance of playing nearby
+        local amt = #fnodes -- amount of found nodes
+        for i=1, amt do
+            if playchance==1 or math.random()>playchance then return end -- over play chance, return!
+            local choice = math.random(1, amt) -- can sometimes point at a nil, nice random chance!
+            local npos = fnodes[choice] -- new pos
+            -- do not play at ourself
+            if npos and not (pos.x == npos.x and pos.y == npos.y and pos.z == npos.z) then
+                -- play 0.4-0.6sec later
+                core.after(math.random(40,60)/100, nbdef.notenode_exile_on_alight, npos)
+                -- remove from list
+                fnodes[choice] = nil
+            end
+            -- take 25% off each iteration to keep choosing
+            playchance = playchance * 0.75
+        end
+    end
+    -- new `on_punch` behaviour
+    nbdef.on_punch = function(pos, node, puncher, pointed_thing)
+        local ndef = core.registered_nodes[node.name]
+        -- set nodes alight if holding shift
+        if core.is_player(puncher) then
+            if puncher:get_player_control().sneak then
+                return ndef.notenode_exile_on_alight(pos, node, ndef)
+            end
+        end
+        -- otherwise do as normal
+        nbdef.notenode_play_instrument(pos, node)
+    end
 end
 
 --------------------------------
