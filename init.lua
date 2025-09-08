@@ -334,6 +334,13 @@ register_instrument(nil, "tph_notenode_organ", {"coalblock", "organ"})
 -- sawtooth sound (made from me humming with my teeth, heavily edited)
 -- was "bveap"
 register_instrument(nil, "tph_notenode_sawtooth", {"meseblock"})
+-- game-specific instruments
+if depends.exile then
+    register_instrument("exilebell", "artifacts_bell")
+end
+if depends.exilev4 then
+    register_instrument("exilesingstone", "artifacts_singing_stone")
+end
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1170,7 +1177,11 @@ core.register_on_mods_loaded(function()
         metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
         bell = {"xpanes:bar_flat", "bones:bones", "artifacts:transporter_power_dep"},
         organ = {"default:coalblock", "ncrafting:dye_table", "minimal:burnt_storage_pile"},
-        sawtooth = {"default:mese", "artifacts:sun_stone", "artifacts:star_stone", "artifacts:transporter_power"}
+        sawtooth = {"default:mese", "artifacts:sun_stone", "artifacts:star_stone", "artifacts:transporter_power"},
+        -- exile-specific
+        exilebell = depends.exile and {"artifacts:bell"} or nil,
+        exilesingstone = depends.exilev4 and {"artifacts:singing_stone", "artifacts:singing_stone_b",
+          "artifacts:singing_stone_c"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
