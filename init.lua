@@ -270,50 +270,70 @@ end
 -- simple bling-like synthy sound, springy (made from a spring inside of a mouse)
 register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base instrument
 -- clacky kinda sound (made from scratching a plastic battery pack)
-register_instrument(nil, "tph_notenode_klalk", "glass")
+-- was "klalk"
+register_instrument(nil, "tph_notenode_clack", "glass")
 -- metallic-ish sound (made from hitting a metal pole)
-register_instrument(nil, "tph_notenode_couke", {lowprty=3, "metal", "metallic", "lodey",
+-- was "couke"
+register_instrument(nil, "tph_notenode_metal", {lowprty=3, "metal", "metallic", "lodey",
   "ironstone", depends.rpx and "ingot"})
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
-register_instrument(nil, {sound="tph_notenode_dwoite", vol=1}, {"refined_tin", depends.nodecore and "adobe"})
+-- was "dwoite"
+register_instrument(nil, {sound="tph_notenode_tin", vol=1}, {"refined_tin", depends.nodecore and "adobe"})
 -- wobbly bassy song (made from playing a spread-out shoelace)
-register_instrument(nil, {sound="tph_notenode_bvogne", vol=1}, {lowprty=6, "tree", "log"})
+-- was "bvogne"
+register_instrument(nil, {sound="tph_notenode_stringbass", vol=1}, {lowprty=6, "tree", "log"})
 -- simple hit sound (made from dragging a finger across a zipper)
-register_instrument(nil, {sound="tph_notenode_blipck", vol=1}, {lowprty=12, "stone", "material_stone", "boulder",
+-- was "blipck"
+register_instrument(nil, {sound="tph_notenode_stone", vol=1}, {lowprty=12, "stone", "material_stone", "boulder",
   "cobble", depends.exile and "masonry"})
--- bamboo-y (hit actual bamboo)
-register_instrument(nil, {sound="tph_notenode_ghlick", gain=1}, {"sapling", "bamboo_block", "woody_plant"})
+-- bamboo-y (made from hitting actual bamboo)
+-- was "ghlick"
+register_instrument(nil, {sound="tph_notenode_bamboo", gain=1}, {"sapling", "bamboo_block", "woody_plant"})
 -- watery (made from moving around in a bathtub of water)
-register_instrument(nil, {sound="tph_notenode_llorlk", vol=0.8}, "water")
+-- was "llorlk"
+register_instrument(nil, {sound="tph_notenode_water", vol=0.8}, "water")
 -- air-y (made from blowing into a glass bottle, 2x pitch)
-register_instrument(nil, "tph_notenode_oouve", {"clay", "flutey"})
+-- was "oouve"
+register_instrument(nil, "tph_notenode_bottleflute", {"clay", "flutey"})
 -- bell-ish (made from flicking at a glass bottle)
-register_instrument(nil, "tph_notenode_gliurk", {"refined_gold", depends.aom and "gilded"})
+-- was "gliurk"
+register_instrument(nil, "tph_notenode_xylophone", {"refined_gold", depends.aom and "gilded"})
 -- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
 register_instrument(nil, "tph_notenode_doap", {"rail", "pumpkin", depends.aom and "item_arlior_growth",
   depends.aom and "item_arlior_growth_purple"})
 -- metallic clank sound/cowbell-ish (made from softly banging two ceramic bowls together)
-register_instrument(nil, "tph_notenode_claen", {"ice", "pottery", depends.aom and "terracotta"})
--- whistley sound (made from me blowing a whistle with my mouth)
-register_instrument(nil, "tph_notenode_mwuu", "air")
--- papery percussion sound (made from me hitting a paper recyclable bag)
-register_instrument(nil, {sound="tph_notenode_ktaut", vol=0.4}, {"gravel", "item_gravel"})
+-- was "claen"
+register_instrument(nil, "tph_notenode_bowlhit", {"ice", "pottery", depends.aom and "terracotta"})
+-- whistley sound (made from me blowing a whistly sound with my mouth)
+-- was "mwuu"
+register_instrument(nil, "tph_notenode_airwhistle", "air")
+-- papery percussion sound, snare-ish (made from me hitting a paper recyclable bag)
+-- was "ktaut"
+register_instrument(nil, {sound="tph_notenode_snarepaper", vol=0.4}, {"gravel", "item_gravel"})
 -- metallic twang kinda sound, made from flicking at a small cooking pot
-register_instrument(nil, "tph_notenode_tintling", "copper")
+-- was "tintling"
+register_instrument(nil, "tph_notenode_metallictwang", "copper")
 -- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
-register_instrument(nil, {sound="tph_notenode_pbauve", vol=0.4}, {"snowy", "snow"})
+-- was "pbauve"
+register_instrument(nil, {sound="tph_notenode_sonar", vol=0.4}, {"snowy", "snow"})
 -- metal whack sound, like a "celeste at home" (made from banging metal coathangers together)
-register_instrument(nil, {sound="tph_notenode_shieng", vol=0.35})
+-- was "shieng"
+register_instrument(nil, {sound="tph_notenode_metallicpile", vol=0.35})
 -- guitar-y - similar to bvogne (made from playing a spread-out lace from a weather jacket)
-register_instrument(nil, {sound="tph_notenode_dvogne", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
+-- was "dvogne"
+register_instrument(nil, {sound="tph_notenode_string", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
 -- soft brassy trumpet-ish sound (made from shaping a blowing of air with my mouth)
-register_instrument(nil, "tph_notenode_oauwre", {lowprty=3, "flora", "fibrous_plant"})
+-- was "oauwre"
+register_instrument(nil, "tph_notenode_hornsoft", {lowprty=3, "flora", "fibrous_plant"})
 -- ringing chime/bell sound (made from finger-flicking a small iron horseshoe)
-register_instrument(nil, "tph_notenode_taong", {"chime"})
+-- was "taong"
+register_instrument(nil, "tph_notenode_bell", {"chime"})
 -- bassy organ-like sound (made from me humming weirdly, but heavily edited)
-register_instrument(nil, "tph_notenode_bvauouve", {"coalblock", "organ"})
+-- was "bvauouve"
+register_instrument(nil, "tph_notenode_organ", {"coalblock", "organ"})
 -- sawtooth sound (made from me humming with my teeth, heavily edited)
-register_instrument(nil, "tph_notenode_bveap", {"meseblock"})
+-- was "bveap"
+register_instrument(nil, "tph_notenode_sawtooth", {"meseblock"})
 -- mod-specific instruments
 if depends.ncbells then
     register_instrument("ncbell",
@@ -1130,27 +1150,27 @@ core.register_on_mods_loaded(function()
     -- certain games don't have good groups
     -- so we'll just have to add certain stuff, MANUALLY!
     local addstruments = { -- add instruments
-        gliurk = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass",
+        xylophone = {"mcl_core:goldblock", "default:goldblock", "nc_optics:glass_opaque", "artifacts:moon_glass",
           "rp_gold:block_gold", "rp_gold:ingot_gold"},
-        ghlick = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick",
+        bamboo = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick",
           "aom_flora:warpberry_bush", "rp_default:papyrus", "default:pine_bush_stem",
           "default:bush_stem", "default:acacia_bush_stem", "aom_flora:warpberry_stem"},
-        dwoite = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
+        tin = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
           "rp_default:block_tin", "rp_default:ingot_tin"},
-        oouve = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
+        bottleflute = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
         doap = {"nc_woodwork:shelf", "artifacts:antiquorium_ladder", "tech:wooden_ladder",
           "rp_default:clam", "rp_default:clam_nopearl",
           "rp_default:book", "rp_default:book_empty"},
-        claen = {"default:ice", "nc_optics:lens", "nc_optics:lens_on", "rp_lumien:crystal_on",
+        bowlhit = {"default:ice", "nc_optics:lens", "nc_optics:lens_on", "rp_lumien:crystal_on",
           "rp_lumien:crystal_off"},
-        mwuu = {"air"},
-        couke = {"aom_stone:ironstone_brick"},
-        tintling = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
-        pbauve = {"nodes_nature:snow", "nodes_nature:snow_block"},
-        shieng = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
-        taong = {"xpanes:bar_flat"},
-        bvauouve = {"default:coalblock"},
-        bveap = {"default:mese"}
+        airwhistle = {"air"},
+        metal = {"aom_stone:ironstone_brick"},
+        metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
+        sonar = {"nodes_nature:snow", "nodes_nature:snow_block"},
+        metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
+        bell = {"xpanes:bar_flat"},
+        organ = {"default:coalblock"},
+        sawtooth = {"default:mese"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
@@ -1169,34 +1189,34 @@ core.register_on_mods_loaded(function()
             if depends.exile then
                 if node.drawtype == "mesh" and node.paramtype2 == "facedir" and
                   node.name:match("cobble") then
-                    do_override(nname, "blipck")
+                    do_override(nname, "stone")
                 elseif nname:match("_mg_") then
-                    do_override(nname, "gliurk")
+                    do_override(nname, "xylophone")
                 elseif nname:match("wooden_") then
-                    do_override(nname, "dvogne")
+                    do_override(nname, "string")
                 elseif node.mod_origin == "tech" and nname:match("iron") then
-                    do_override(nname, "couke")
+                    do_override(nname, "metal")
                 elseif type(node.drop) == "string" and node.drop:match(":clay") then
-                    do_override(nname, "oouve")
+                    do_override(nname, "bottleflute")
                 elseif type(node.drop) == "string" and node.drop:match(":gravel") then
-                    do_override(nname, "ktaut")
+                    do_override(nname, "snarepaper")
                 end
             -- repixture unique stuff
             elseif depends.rpx then
                 if nname:match("rp_default:block_") and groups.cracky then
-                    do_override(nname, "couke")
+                    do_override(nname, "metal")
                 end
             end
             -- ncbells
             if node.mod_origin == "ncbells" then
                 do_override(nname, "ncbell")
             elseif node.mod_origin == "aom_pipes" then
-                do_override(nname, "dwoite")
+                do_override(nname, "tin")
             elseif node.mod_origin == "hades_bushes" then
-                do_override(nname, "ghlick")
+                do_override(nname, "bamboo")
             elseif node.mod_origin == "mcl_copper" and (groups.oxidizable or groups.waxed or
               node._mcl_waxed_variant) then
-                do_override(nname, "dwoite")
+                do_override(nname, "tin")
             -- sometimes games are weird
             elseif type(node.sounds) == "table" and not node.tph_notenode_instrument then
                 local sound
@@ -1210,15 +1230,15 @@ core.register_on_mods_loaded(function()
                 -- if found and no instrument set already
                 if sound then
                     if sound.name:match("metal") then
-                        do_override(nname, "couke")
+                        do_override(nname, "metal")
                     elseif sound.name:match("glass") then
-                        do_override(nname, "klalk")
+                        do_override(nname, "clack")
                     -- nodecore sounds
                     elseif depends.nodecore then
                         if sound.name:match("tree_sticky") then
-                            do_override(nname, "ghlick")
+                            do_override(nname, "bamboo")
                         elseif sound.name:match("tree_woody") then
-                            do_override(nname, "bvogne")
+                            do_override(nname, "stringbass")
                         end
                     end
                 end
@@ -1226,9 +1246,9 @@ core.register_on_mods_loaded(function()
             -- name checks
             if not node.tph_notenode_instrument then
                 if nname:match(":clay") then
-                    do_override(nname, "oouve")
+                    do_override(nname, "bottleflute")
                 elseif nname:match(":gravel") then
-                    do_override(nname, "ktaut")
+                    do_override(nname, "snarepaper")
                 end
             end
         end
