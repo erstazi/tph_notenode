@@ -1168,9 +1168,9 @@ core.register_on_mods_loaded(function()
         metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
         sonar = {"nodes_nature:snow", "nodes_nature:snow_block"},
         metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
-        bell = {"xpanes:bar_flat"},
-        organ = {"default:coalblock"},
-        sawtooth = {"default:mese"}
+        bell = {"xpanes:bar_flat", "bones:bones", "artifacts:transporter_power_dep"},
+        organ = {"default:coalblock", "ncrafting:dye_table", "minimal:burnt_storage_pile"},
+        sawtooth = {"default:mese", "artifacts:sun_stone", "artifacts:star_stone", "artifacts:transporter_power"}
     }
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
