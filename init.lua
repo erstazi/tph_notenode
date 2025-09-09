@@ -10,9 +10,20 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --]]
 
+local amn = core.get_current_modname() -- active mod's name
+-- `amn` should be `tph_notenode` - unless you've changed the `mod.conf`
+local amnpf = amn..":" -- intended for prefix
+
 -- get_current_modname but provides a string on nil
 local function get_cmn()
     return core.get_current_modname() or "??"
+end
+
+-- quicker than `string..string2`, uses `table.concat`
+-- `sep` can be nil or string, intended for the "separator" argument of `table.concat`
+local function csg(sep, ...) -- `concat_strings`, shortened
+    sep = type(sep) == "string" and sep or ""
+    return table.concat({...}, sep)
 end
 
 -- used to quickly make an unwritable metatable data
@@ -20,16 +31,14 @@ end
 -- indexingdesc is the name/description of the table (unnecessary to provide if errmsg is specified)
 -- errmsg is not required if indexingname is specified
 local function create_unwritable(indexing, indexingdesc, errmsg)
-    if not errmsg then
-        errmsg = "tph_notenode: writing to "..indexingdesc.." is unsupported."
-    end
-    errmsg = errmsg.." Blocked write from mod: "
+    errmsg = errmsg or csg(" ", "writing to", indexingdesc, "is unsupported")
+    errmsg = csg(" ", amnpf, errmsg) -- prefix
     return setmetatable({},{
         __index = function(t, key)
             return indexing[key]
         end,
         __newindex = function(t, key, value)
-            error(errmsg..get_cmn())
+            error(csg(" ", "Blocked write from mod:", get_cmn()) )
         end
     })
 end
@@ -37,7 +46,7 @@ end
 tph_notenode = {}
 
 -- translator functionality
-local S = core.get_translator("tph_notenode")
+local S = core.get_translator(amn)
 
 -- mod support
 -- these are only ever used as truthy and should not be used for non-boolean purposes
@@ -65,7 +74,7 @@ depends.NLC = NLC
 -- add to tph_notenode for mod usage, prevent writing
 -- indexing, indexingname, errmsg
 tph_notenode.depends = create_unwritable(depends, nil,
-  "tph_notenode: writing to depends table is unsupported. Please contact TPH for adding new depends.")
+  "writing to depends table is unsupported. Please contact TPH or the mod author for adding new depends.")
 
 
 -- notes 1 to 12
@@ -90,7 +99,8 @@ do
             return type(value) == "table" and table.copy(value) or value
         end,
         __newindex = function(t, key, value)
-            error("tph_notenode: writing to notesdata table is unsupported. Blocked write from mod: "..get_cmn())
+            error(csg(" ", amnpf, "writing to notesdata table is unsupported. Blocked write from mod:",
+              get_cmn()) )
         end
     })
 end
@@ -134,15 +144,15 @@ local function register_instrument(name, def, groups, noteC)
     -- basic definition (requires sound)
     def = type(def) == "string" and {sound=def} or type(def) == "table" and def
     if not (def and type(def.sound) == "string") then
-        error("tph_notenode: instrument '"..name.."' lacks a sound! Please provide a sound file as 2nd parameter or "..
-          "as the 'sound' index in definition")
+        error(csg("", amnpf, " instrument '", name, "' lacks a sound! Please provide a sound file as 2nd parameter",
+          " or as the 'sound' index in definition"))
     end
     def.mod_origin = core.get_current_modname()
     -- be weird and derive name from sound
     name = name == "unknown" and def.sound:gsub(def.mod_origin.."_","") or name
     -- if found in instruments, do error
     if instruments[name] then
-        error("tph_notenode: '"..name.."' is an already registered instrument! Please name your instrument something else.")
+        error(csg("", amnpf, " '",name,"' is an already registered instrument! Please name your instrument something else."))
     end
     -- volume
     def.gain = type(def.gain) == "number" and def.gain or type(def.vol) == "number" and def.vol
@@ -237,7 +247,7 @@ local function register_instrument(name, def, groups, noteC)
         for _,grpname in ipairs(groups) do
             -- play this instrument for this group
             -- as long as it doesn't start with `tph_notenode`
-            if type(grpname) == "string" and grpname:sub(1,12) ~= "tph_notenode" then
+            if type(grpname) == "string" and grpname:sub(1,12) ~= amn then
                 local oldstrument = play_for_group[grpname] -- if another instrument exists here
                 oldstrument = oldstrument and instruments[oldstrument]
                 -- erase this group from old instrument's list of playing
@@ -252,7 +262,7 @@ local function register_instrument(name, def, groups, noteC)
         end
     end
     -- add ourself to playing groups
-    local instgrpname = "tph_notenode_"..name -- instrument group name
+    local instgrpname = csg("", amn, "_", name) -- instrument group name
     play_for_group[instgrpname] = name
     def.playing_groups[instgrpname] = true
     -- low priority mechanics
@@ -272,13 +282,13 @@ local function register_instrument(name, def, groups, noteC)
             return type(value) == "table" and table.copy(value) or value
         end,
         __newindex = function(t, key, value)
-            error("tph_notenode: registered_instruments violation; not permitted to write to '"..name..
-              "' instrument. Blocked write from mod: "..get_cmn())
+            error(csg("", amnpf," registered_instruments violation; not permitted to write to '", name,
+              "' instrument. Blocked write from mod: ", get_cmn()) )
         end
     })
     -- lower the priority of all base instruments by 3
     -- if an external mod uses the register_instrument functionality
-    if def.mod_origin ~= "tph_notenode" and lpoem then
+    if def.mod_origin ~= amn and lpoem then
         lpoem()
     end
 end
@@ -816,9 +826,10 @@ nbdef.tiles = {}
 for i=1,6 do
     local tile = "tph_notenode.png^tph_notenode_crest.png"
     if i ~= 2 then -- not the bottom
-        tile = tile.."^"..(i == 1 and "tph_notenode_waveform.png" or -- top
+        tile = csg("", tile, "^",
+          (i == 1 and "tph_notenode_waveform.png" or -- top
           (i==4 or i==6) and "tph_notenode_treble.png" or -- higher pitch
-          (i==3 or i==5) and "tph_notenode_bass.png") -- lower pitch
+          (i==3 or i==5) and "tph_notenode_bass.png") ) -- lower pitch
     end
     nbdef.tiles[i] = tile
 end
@@ -1235,8 +1246,8 @@ core.register_on_mods_loaded(function()
     local function do_override(ndef, instrument)
         local grps = ndef.groups or {}
         -- e.g. `tph_notenode_myinstrument` group
-        -- use concat as it's faster
-        grps[table.concat({"tph_notenode_",instrument})] = 1
+        -- use csg function as it's faster than using `..`
+        grps[csg("", "tph_notenode_",instrument)] = 1
         core.override_item(ndef.name, {groups = grps})
         return true -- return true on success
     end
