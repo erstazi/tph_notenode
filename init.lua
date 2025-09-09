@@ -90,7 +90,7 @@ do
             return type(value) == "table" and table.copy(value) or value
         end,
         __newindex = function(t, key, value)
-            error("tph_notenode: writign to notesdata table is unsupported. Blocked write from mod: "..get_cmn())
+            error("tph_notenode: writing to notesdata table is unsupported. Blocked write from mod: "..get_cmn())
         end
     })
 end
@@ -99,6 +99,17 @@ end
 local instruments = {} -- raw data
 -- public access variant of the above
 local public_instruments = {}
+
+-- lowers the priority of all base instruments by 3 if an external mod registers an instrument
+local lpoem -- lower priority on external mod
+lpoem = function()
+    for name, data in pairs(instruments) do
+        local cprty = data.choice_priority
+        cprty = cprty or 0
+        data.choice_priority = cprty + 3
+    end
+    lpoem = nil -- erase ourself now that we've done this
+end
 
 -- setting a metatable prevents iteration
 tph_notenode.registered_instruments = {}
@@ -265,6 +276,11 @@ local function register_instrument(name, def, groups, noteC)
               "' instrument. Blocked write from mod: "..get_cmn())
         end
     })
+    -- lower the priority of all base instruments by 3
+    -- if an external mod uses the register_instrument functionality
+    if def.mod_origin ~= "tph_notenode" and lpoem then
+        lpoem()
+    end
 end
 
 -- name, groups, noteC
