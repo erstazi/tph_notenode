@@ -212,6 +212,8 @@ local function register_instrument(name, def, groups, noteC)
     octrange[2] = noteC.octave + octrange[2]
     -- figure out groups if specified
     groups = type(groups) == "string" and {groups} or groups
+    -- our own playing groups
+    def.playing_groups = {}
     -- add to play_for_group
     if type(groups) == "table" then
         -- choice priority (higher numbers = less likely to be picked if a lower number or none exists)
@@ -220,12 +222,11 @@ local function register_instrument(name, def, groups, noteC)
             def.choice_priority = lowprty
             groups.lowprty = nil
         end
-        -- our own playing groups
-        def.playing_groups = {}
         -- iterate through specified groups
         for _,grpname in ipairs(groups) do
             -- play this instrument for this group
-            if type(grpname) == "string" then
+            -- as long as it doesn't start with `tph_notenode`
+            if type(grpname) == "string" and grpname:sub(1,12) ~= "tph_notenode" then
                 local oldstrument = play_for_group[grpname] -- if another instrument exists here
                 oldstrument = oldstrument and instruments[oldstrument]
                 -- erase this group from old instrument's list of playing
@@ -239,6 +240,10 @@ local function register_instrument(name, def, groups, noteC)
             end
         end
     end
+    -- add ourself to playing groups
+    local instgrpname = "tph_notenode_"..name -- instrument group name
+    play_for_group[instgrpname] = name
+    def.playing_groups[instgrpname] = true
     -- low priority mechanics
     def.choice_priority = type(def.choice_priority) == "number" and def.choice_priority > 0 and def.choice_priority or
       nil
@@ -1209,8 +1214,15 @@ end
 -- set custom instruments UGH - no usable or sensible groups!
 core.register_on_mods_loaded(function()
     -- used to quickly add an instrument to a node's definition
-    local function do_override(name, instrument)
-        core.override_item(name, {tph_notenode_instrument = instrument})
+    -- setting `tph_notenode_instrument` field allows first priority
+    -- but we're setting it as a group here instead to permit mods to customize better
+    local function do_override(ndef, instrument)
+        local grps = ndef.groups or {}
+        -- e.g. `tph_notenode_myinstrument` group
+        -- use concat as it's faster
+        grps[table.concat({"tph_notenode_",instrument})] = 1
+        core.override_item(ndef.name, {groups = grps})
+        return true -- return true on success
     end
     -- certain games don't have good groups
     -- so we'll just have to add certain stuff, MANUALLY!
@@ -1244,8 +1256,9 @@ core.register_on_mods_loaded(function()
     -- add instrument string
     for instrument, nodes in pairs(addstruments) do -- node name, instrument name
         for _, nname in ipairs(nodes) do
-            if core.registered_nodes[nname] then
-                do_override(nname, instrument)
+            local ndef = core.registered_nodes[nname]
+            if ndef then
+                do_override(ndef, instrument)
             end
         end
     end
@@ -1253,41 +1266,42 @@ core.register_on_mods_loaded(function()
     for nname, node in pairs(core.registered_nodes) do -- node name, node definition
         -- not a node that'll generate a unique instrument
         if not get_instrument_raw(nil, nil, node) then
+            local csucc = false -- compatibility success
             local groups = node.groups or {} -- just so we can easily check
             -- exile unique stuff
             if depends.exile then
                 if node.drawtype == "mesh" and node.paramtype2 == "facedir" and
-                  node.name:match("cobble") then
-                    do_override(nname, "stone")
+                  nname:match("cobble") then
+                    csucc = do_override(node, "stone")
                 elseif nname:match("_mg_") then
-                    do_override(nname, "xylophone")
+                    csucc = do_override(node, "xylophone")
                 elseif nname:match("wooden_") then
-                    do_override(nname, "string")
+                    do_override(node, "string")
                 elseif node.mod_origin == "tech" and nname:match("iron") then
-                    do_override(nname, "metal")
+                    do_override(node, "metal")
                 elseif type(node.drop) == "string" and node.drop:match(":clay") then
-                    do_override(nname, "bottleflute")
+                    csucc = do_override(node, "bottleflute")
                 elseif type(node.drop) == "string" and node.drop:match(":gravel") then
-                    do_override(nname, "snarepaper")
+                    csucc = do_override(node, "snarepaper")
                 end
             -- repixture unique stuff
             elseif depends.rpx then
                 if nname:match("rp_default:block_") and groups.cracky then
-                    do_override(nname, "metal")
+                    csucc = do_override(node, "metal")
                 end
             end
             -- ncbells
             if node.mod_origin == "ncbells" then
-                do_override(nname, "ncbell")
+                csucc = do_override(node, "ncbell")
             elseif node.mod_origin == "aom_pipes" then
-                do_override(nname, "tin")
+                csucc = do_override(node, "tin")
             elseif node.mod_origin == "hades_bushes" then
-                do_override(nname, "bamboo")
+                csucc = do_override(node, "bamboo")
             elseif node.mod_origin == "mcl_copper" and (groups.oxidizable or groups.waxed or
               node._mcl_waxed_variant) then
-                do_override(nname, "tin")
+                csucc = do_override(node, "tin")
             -- sometimes games are weird
-            elseif type(node.sounds) == "table" and not node.tph_notenode_instrument then
+            elseif type(node.sounds) == "table" and not csucc then
                 local sound
                 -- find a soundspec
                 for _,data in pairs(node.sounds) do
@@ -1299,25 +1313,25 @@ core.register_on_mods_loaded(function()
                 -- if found and no instrument set already
                 if sound then
                     if sound.name:match("metal") then
-                        do_override(nname, "metal")
+                        csucc = do_override(node, "metal")
                     elseif sound.name:match("glass") then
-                        do_override(nname, "clack")
+                        csucc = do_override(node, "clack")
                     -- nodecore sounds
                     elseif depends.nodecore then
                         if sound.name:match("tree_sticky") then
-                            do_override(nname, "bamboo")
+                            csucc = do_override(node, "bamboo")
                         elseif sound.name:match("tree_woody") then
-                            do_override(nname, "stringbass")
+                            csucc = do_override(node, "stringbass")
                         end
                     end
                 end
             end
             -- name checks
-            if not node.tph_notenode_instrument then
+            if not csucc then
                 if nname:match(":clay") then
-                    do_override(nname, "bottleflute")
+                    csucc = do_override(node, "bottleflute")
                 elseif nname:match(":gravel") then
-                    do_override(nname, "snarepaper")
+                    csucc = do_override(node, "snarepaper")
                 end
             end
         end
