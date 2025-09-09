@@ -350,7 +350,7 @@ register_instrument(nil, {sound="tph_notenode_sonar", vol=0.4}, {"snowy", "snow"
 -- metal whack sound, like a "celeste at home" (made from banging metal coathangers together)
 -- was "shieng"
 register_instrument(nil, {sound="tph_notenode_metallicpile", vol=0.35})
--- guitar-y - similar to bvogne (made from playing a spread-out lace from a weather jacket)
+-- guitar-y - similar to bvogne (made from playing a strand of falling-apart sock)
 -- was "dvogne"
 register_instrument(nil, {sound="tph_notenode_string", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
 -- soft brassy trumpet-ish sound (made from shaping a blowing of air with my mouth)
