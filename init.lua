@@ -355,7 +355,7 @@ register_instrument(nil, {sound="tph_notenode_metallicpile", vol=0.35}, depends.
 register_instrument(nil, {sound="tph_notenode_string", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
 -- soft brassy trumpet-ish sound (made from shaping a blowing of air with my mouth)
 -- was "oauwre"
-register_instrument(nil, "tph_notenode_hornsoft", {lowprty=3, "flora", "fibrous_plant"})
+register_instrument(nil, "tph_notenode_hornsoft", {lowprty=3, "flora", "fibrous_plant", depends.rpx and "plant"})
 -- ringing chime/bell sound (made from finger-flicking a small iron horseshoe)
 -- was "taong"
 register_instrument(nil, "tph_notenode_bell", {"chime", depends.aom and "scaffolding"})
@@ -1275,12 +1275,14 @@ core.register_on_mods_loaded(function()
           "rp_lumien:crystal_off"},
         airwhistle = {"air"},
         metal = {"aom_stone:ironstone_brick"},
-        metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray", "aom_stone:ironstone_cobble"},
-        sonar = {"nodes_nature:snow", "nodes_nature:snow_block"},
-        metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
-        bell = {"xpanes:bar_flat", "bones:bones", "artifacts:transporter_power_dep"},
-        organ = {"default:coalblock", "ncrafting:dye_table", "minimal:burnt_storage_pile"},
-        sawtooth = {"default:mese", "artifacts:sun_stone", "artifacts:star_stone", "artifacts:transporter_power"},
+        metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray", "aom_stone:ironstone_cobble",
+          "rp_default:block_bronze", "rp_default:ingot_bronze"},
+        sonar = {"nodes_nature:snow", "nodes_nature:snow_block", "rp_default:cactus"},
+        metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium", "rp_default:block_carbon_steel"},
+        bell = {"xpanes:bar_flat", "bones:bones", "artifacts:transporter_power_dep", "rp_default:reinforced_frame"},
+        organ = {"default:coalblock", "ncrafting:dye_table", "minimal:burnt_storage_pile", "rp_default:block_coal"},
+        sawtooth = {"default:mese", "artifacts:sun_stone", "artifacts:star_stone", "artifacts:transporter_power",
+          "rp_lumien:block"},
         -- exile-specific
         exilebell = depends.exile and {"artifacts:bell"} or nil,
         exilesingstone = depends.exilev4 and {"artifacts:singing_stone", "artifacts:singing_stone_b",
