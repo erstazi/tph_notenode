@@ -293,6 +293,34 @@ local function register_instrument(name, def, groups, noteC)
     end
 end
 
+-- need this because the good 'ol `ipairs` doesn't like it when something is false for some reason (or whatever is going on??)
+-- whatever it is, it doesn't like my `depends.something and "thisthing"`
+-- just better automates the `register_instrument` groups parameter that I use below
+-- has `lowprty` argument to shorten the need to type out `choice_priority`
+local function cigt(lowprty, ...) -- create instrument groups table
+    local groups = {}
+    local params = {...} -- turn it into a table!!!
+    -- just another parameter (not a number, a string!), add to params
+    if type(lowprty) == "string" then
+        table.insert(params, 1, lowprty)
+        lowprty = nil -- and erase
+    end
+    -- don't use ipairs because it'll choke :rolling_eyes:
+    -- not even use a #length works either ARGH
+    for _,param in pairs(params) do
+        -- only add to numbered index table if a string
+        if type(param) == "string" then
+            groups[#groups + 1] = param
+        end
+    end
+    -- add low priority if number
+    if type(lowprty) == "number" then
+        groups.lowprty = lowprty
+    end
+    -- using these
+    return groups
+end
+
 -- name, groups, noteC
 -- name can be nil and grabbed from sound, groups is expected to be filled with group strings, noteC can be nil
 -- sound can be a definition table, if so, must have {sound=sound_name}
@@ -305,66 +333,67 @@ register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base inst
 register_instrument(nil, "tph_notenode_clack", "glass")
 -- metallic-ish sound (made from hitting a metal pole)
 -- was "couke"
-register_instrument(nil, "tph_notenode_metal", {lowprty=3, "metal", "metallic", "lodey",
-  "ironstone", depends.rpx and "ingot"})
+register_instrument(nil, "tph_notenode_metal", cigt(3, "metal", "metallic", "lodey",
+  "ironstone", depends.rpx and "ingot"))
 -- weird artificial bassy sound (made from hitting the top of a nutella plastic lid)
 -- was "dwoite"
-register_instrument(nil, {sound="tph_notenode_tin", vol=1}, {"refined_tin", depends.nodecore and "adobe"})
+register_instrument(nil, {sound="tph_notenode_tin", vol=1}, cigt("refined_tin", depends.nodecore and "adobe"))
 -- wobbly bassy song (made from playing a spread-out shoelace)
 -- was "bvogne"
-register_instrument(nil, {sound="tph_notenode_stringbass", vol=1}, {lowprty=6, "tree", "log"})
+register_instrument(nil, {sound="tph_notenode_stringbass", vol=1}, cigt(6, "tree", "log"))
 -- simple hit sound (made from dragging a finger across a zipper)
 -- was "blipck"
-register_instrument(nil, {sound="tph_notenode_stone", vol=1}, {lowprty=12, "stone", "material_stone", "boulder",
-  "cobble", "ore", depends.exile and "masonry"})
+register_instrument(nil, {sound="tph_notenode_stone", vol=1}, cigt(12, "stone", "material_stone", "boulder",
+  "cobble", "ore", depends.exile and "masonry"))
 -- bamboo-y (made from hitting actual bamboo)
 -- was "ghlick"
-register_instrument(nil, {sound="tph_notenode_bamboo", gain=1}, {"sapling", "bamboo_block", "woody_plant"})
+register_instrument(nil, {sound="tph_notenode_bamboo", gain=1}, cigt("sapling", "bamboo_block", "woody_plant"))
 -- watery (made from moving around in a bathtub of water)
 -- was "llorlk"
 register_instrument(nil, {sound="tph_notenode_water", vol=0.8}, "water")
 -- air-y (made from blowing into a glass bottle, 2x pitch)
 -- was "oouve"
-register_instrument(nil, "tph_notenode_bottleflute", {"clay", "flutey"})
+register_instrument(nil, "tph_notenode_bottleflute", cigt("clay", "flutey"))
 -- bell-ish (made from flicking at a glass bottle)
 -- was "gliurk"
-register_instrument(nil, "tph_notenode_xylophone", {"refined_gold", depends.aom and "gilded"})
+register_instrument(nil, "tph_notenode_xylophone", cigt("refined_gold", depends.aom and "gilded"))
 -- soft mallet/pluck sound (made from pulling finger tightly out of a glass bottle)
-register_instrument(nil, "tph_notenode_doap", {"rail", "pumpkin", depends.aom and "item_arlior_growth",
-  depends.aom and "item_arlior_growth_purple"})
+register_instrument(nil, "tph_notenode_doap", cigt("rail", "pumpkin", depends.aom and "item_arlior_growth",
+  depends.aom and "item_arlior_growth_purple"))
 -- metallic clank sound/cowbell-ish (made from softly banging two ceramic bowls together)
 -- was "claen"
-register_instrument(nil, "tph_notenode_bowlhit", {"ice", "pottery", depends.aom and "terracotta"})
+register_instrument(nil, "tph_notenode_bowlhit", cigt("ice", "pottery", depends.aom and "terracotta"))
 -- whistley sound (made from me blowing a whistly sound with my mouth)
 -- was "mwuu"
 register_instrument(nil, "tph_notenode_airwhistle", "air")
 -- papery percussion sound, snare-ish (made from me hitting a paper recyclable bag)
 -- was "ktaut"
-register_instrument(nil, {sound="tph_notenode_snarepaper", vol=0.4}, {"gravel", "item_gravel"})
+register_instrument(nil, {sound="tph_notenode_snarepaper", vol=0.4}, cigt("gravel", "item_gravel"))
 -- metallic twang kinda sound, made from flicking at a small cooking pot
 -- was "tintling"
 register_instrument(nil, "tph_notenode_metallictwang", "copper")
 -- synthetic ding/telephone-like sound (made from banging bits of my thermos and heavy editing)
 -- was "pbauve"
-register_instrument(nil, {sound="tph_notenode_sonar", vol=0.4}, {"snowy", "snow"})
+register_instrument(nil, {sound="tph_notenode_sonar", vol=0.4}, cigt("snowy", "snow"))
 -- metal whack sound, like a "celeste at home" (made from banging metal coathangers together)
 -- was "shieng"
 register_instrument(nil, {sound="tph_notenode_metallicpile", vol=0.35}, depends.aom and {"granite"})
 -- guitar-y - similar to bvogne (made from playing a strand of falling-apart sock)
 -- was "dvogne"
-register_instrument(nil, {sound="tph_notenode_string", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
+register_instrument(nil, {sound="tph_notenode_string", vol=1}, cigt(8, "material_wood", "wood", "planks"))
 -- soft brassy trumpet-ish sound (made from shaping a blowing of air with my mouth)
 -- was "oauwre"
-register_instrument(nil, "tph_notenode_hornsoft", {lowprty=3, "flora", "fibrous_plant", depends.rpx and "plant"})
+register_instrument(nil, "tph_notenode_hornsoft", cigt(3, "flora", "fibrous_plant", depends.rpx and "plant"))
 -- ringing chime/bell sound (made from finger-flicking a small iron horseshoe)
 -- was "taong"
-register_instrument(nil, "tph_notenode_bell", {"chime", depends.aom and "scaffolding"})
+register_instrument(nil, "tph_notenode_bell", cigt("chime", depends.aom and "scaffolding"))
 -- bassy organ-like sound (made from me humming weirdly, but heavily edited)
 -- was "bvauouve"
-register_instrument(nil, "tph_notenode_organ", {"coalblock", "organ", depends.aom and "item_compost"})
+register_instrument(nil, "tph_notenode_organ", cigt("coalblock", "coalstone", "organ", depends.aom and "item_compost"))
 -- sawtooth sound (made from me humming with my teeth, heavily edited)
 -- was "bveap"
-register_instrument(nil, "tph_notenode_sawtooth", {"meseblock", depends.aom and "glow_rock"})
+register_instrument(nil, "tph_notenode_sawtooth", cigt("meseblock", depends.aom and "glow_rock",
+  depends.nodecore and "lux_emit"))
 -- game-specific instruments
 if depends.exile then
     register_instrument("exilebell", "artifacts_bell")
@@ -1265,6 +1294,7 @@ core.register_on_mods_loaded(function()
         bamboo = {"mcl_bamboo:bamboo_block", "mcl_bamboo:bamboo_block_stripped", "tech:stick",
           "aom_flora:warpberry_bush", "rp_default:papyrus", "default:pine_bush_stem",
           "default:bush_stem", "default:acacia_bush_stem", "aom_flora:warpberry_stem"},
+        string = {"nc_woodwork:plank"},
         tin = {"default:tinblock", "hades_core:tinblock", "artifacts:antiquorium",
           "rp_default:block_tin", "rp_default:ingot_tin"},
         bottleflute = {"nc_concrete:mud", "rp_default:sand"}, -- no clay in repixture, use sand instead
@@ -1276,11 +1306,13 @@ core.register_on_mods_loaded(function()
         airwhistle = {"air"},
         metal = {"aom_stone:ironstone_brick"},
         metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray", "aom_stone:ironstone_cobble",
-          "rp_default:block_bronze", "rp_default:ingot_bronze"},
+          "rp_default:block_bronze", "rp_default:ingot_bronze", "nc_lode:bar_tempered", "nc_lode:bar_annealed",
+          "nc_lode:rod_tempered", "nc_lode:rod_annealed"},
         sonar = {"nodes_nature:snow", "nodes_nature:snow_block", "rp_default:cactus"},
         metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium", "rp_default:block_carbon_steel"},
         bell = {"xpanes:bar_flat", "bones:bones", "artifacts:transporter_power_dep", "rp_default:reinforced_frame"},
-        organ = {"default:coalblock", "ncrafting:dye_table", "minimal:burnt_storage_pile", "rp_default:block_coal"},
+        organ = {"default:coalblock", "ncrafting:dye_table", "minimal:burnt_storage_pile", "rp_default:block_coal",
+          "nc_fire:lump_coal"},
         sawtooth = {"default:mese", "artifacts:sun_stone", "artifacts:star_stone", "artifacts:transporter_power",
           "rp_lumien:block"},
         -- exile-specific
@@ -1335,6 +1367,16 @@ core.register_on_mods_loaded(function()
             elseif node.mod_origin == "mcl_copper" and (groups.oxidizable or groups.waxed or
               node._mcl_waxed_variant) then
                 csucc = do_override(node, "tin")
+            elseif node.mod_origin == "nc_flora" then
+                if node.name:match("flower_1") then
+                    csucc = do_override(node, "bell")
+                elseif node.name:match("flower_5") then
+                    csucc = do_override(node, "doap")
+                elseif node.name:match("flower_4") then
+                    csucc = do_override(node, "metallicpile")
+                else
+                    csucc = do_override(node, "hornsoft")
+                end
             -- sometimes games are weird
             elseif type(node.sounds) == "table" and not csucc then
                 local sound
