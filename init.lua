@@ -316,7 +316,7 @@ register_instrument(nil, {sound="tph_notenode_stringbass", vol=1}, {lowprty=6, "
 -- simple hit sound (made from dragging a finger across a zipper)
 -- was "blipck"
 register_instrument(nil, {sound="tph_notenode_stone", vol=1}, {lowprty=12, "stone", "material_stone", "boulder",
-  "cobble", depends.exile and "masonry"})
+  "cobble", "ore", depends.exile and "masonry"})
 -- bamboo-y (made from hitting actual bamboo)
 -- was "ghlick"
 register_instrument(nil, {sound="tph_notenode_bamboo", gain=1}, {"sapling", "bamboo_block", "woody_plant"})
@@ -349,7 +349,7 @@ register_instrument(nil, "tph_notenode_metallictwang", "copper")
 register_instrument(nil, {sound="tph_notenode_sonar", vol=0.4}, {"snowy", "snow"})
 -- metal whack sound, like a "celeste at home" (made from banging metal coathangers together)
 -- was "shieng"
-register_instrument(nil, {sound="tph_notenode_metallicpile", vol=0.35})
+register_instrument(nil, {sound="tph_notenode_metallicpile", vol=0.35}, depends.aom and {"granite"})
 -- guitar-y - similar to bvogne (made from playing a strand of falling-apart sock)
 -- was "dvogne"
 register_instrument(nil, {sound="tph_notenode_string", vol=1}, {lowprty=8, "material_wood", "wood", "planks"})
@@ -358,13 +358,13 @@ register_instrument(nil, {sound="tph_notenode_string", vol=1}, {lowprty=8, "mate
 register_instrument(nil, "tph_notenode_hornsoft", {lowprty=3, "flora", "fibrous_plant"})
 -- ringing chime/bell sound (made from finger-flicking a small iron horseshoe)
 -- was "taong"
-register_instrument(nil, "tph_notenode_bell", {"chime"})
+register_instrument(nil, "tph_notenode_bell", {"chime", depends.aom and "scaffolding"})
 -- bassy organ-like sound (made from me humming weirdly, but heavily edited)
 -- was "bvauouve"
-register_instrument(nil, "tph_notenode_organ", {"coalblock", "organ"})
+register_instrument(nil, "tph_notenode_organ", {"coalblock", "organ", depends.aom and "item_compost"})
 -- sawtooth sound (made from me humming with my teeth, heavily edited)
 -- was "bveap"
-register_instrument(nil, "tph_notenode_sawtooth", {"meseblock"})
+register_instrument(nil, "tph_notenode_sawtooth", {"meseblock", depends.aom and "glow_rock"})
 -- game-specific instruments
 if depends.exile then
     register_instrument("exilebell", "artifacts_bell")
@@ -1099,6 +1099,12 @@ end
 
 -- age of mending support
 if depends.aom then
+    -- remove dig immedate
+    nbdef.groups.dig_immediate = nil
+    devicedef.groups.dig_immediate = nil
+    -- and replace with better dig groups
+    nbdef.groups.choppy = 1
+    devicedef.groups.cracky = 1
     local offnodes = {}
     -- we're machines!
     nbdef.groups.mechanisms = 1
@@ -1269,7 +1275,7 @@ core.register_on_mods_loaded(function()
           "rp_lumien:crystal_off"},
         airwhistle = {"air"},
         metal = {"aom_stone:ironstone_brick"},
-        metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray"},
+        metallictwang = {"default:bronzeblock", "tech:trapdoor_iron", "tech:pane_tray", "aom_stone:ironstone_cobble"},
         sonar = {"nodes_nature:snow", "nodes_nature:snow_block"},
         metallicpile = {"default:diamondblock", "artifacts:trapdoor_antiquorium"},
         bell = {"xpanes:bar_flat", "bones:bones", "artifacts:transporter_power_dep"},
