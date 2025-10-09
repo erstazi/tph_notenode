@@ -561,15 +561,15 @@ local function get_note(param2, instrument)
     -- +1 as lua tables start with 1 not 0
     param2 = param2 + 1
     -- clamp param2
-    local clamped -- 2nd return, tells you which way it was clamped
+    local clamped -- 2nd return, tells you which way it was clamped to
     -- too low, start high
     if param2 < 1 then
         param2 = notesamt
-        clamped = "high" -- was too high!
+        clamped = "high" -- was too low, clamped to high!
     -- too high, start low
     elseif param2 > notesamt then
         param2 = 1
-        clamped = "low" -- was too low!
+        clamped = "low" -- was too high, clamped to low!
     end
     -- should never be nil unless you messed up your copy of the instrument
     -- 2nd return "clamped" is either "high", "low", or nil if it wasn't clamped
