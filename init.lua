@@ -536,15 +536,17 @@ end
 
 -- convert raw param2 to a tangible note
 local function get_note(param2, instrument)
-    if type(param2) ~= "number" then return end
+    if type(param2) ~= "number" then
+        error("tph_notenode.convert_param2_to_note: provided param2 is NOT a number! "..type(param2))
+    end
     -- instrument should be the instrument you get from `tph_notenode.registered_instruments`
     instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
     -- errors
     if type(instrument) ~= "table" then
-        error("tph_notenode.get_note: provided instrument (table/string name) does not exist! "..dump(instrument))
+        error("tph_notenode.convert_param2_to_note: provided instrument (table/string name) does not exist! "..dump(instrument))
     end
     if type(instrument.notes) ~= "table" then
-        error("tph_notenode.get_node: instrument lacks 'notes' table. Error with "..
+        error("tph_notenode.convert_param2_to_note: instrument lacks 'notes' table. Error with "..
           (type(instrument.name) == "string" and instrument.name or dump(instrument)) )
     end
     -- instrument notes, will be used for clamping
@@ -559,15 +561,19 @@ local function get_note(param2, instrument)
     -- +1 as lua tables start with 1 not 0
     param2 = param2 + 1
     -- clamp param2
+    local clamped -- 2nd return, tells you which way it was clamped
     -- too low, start high
     if param2 < 1 then
         param2 = notesamt
+        clamped = "high" -- was too high!
     -- too high, start low
     elseif param2 > notesamt then
         param2 = 1
+        clamped = "low" -- was too low!
     end
     -- should never be nil unless you messed up your copy of the instrument
-    return instnotes[param2]
+    -- 2nd return "clamped" is either "high", "low", or nil if it wasn't clamped
+    return instnotes[param2], clamped
 end
 
 -- if given a param2 and instrument (or instrument name), returns playable note
