@@ -538,12 +538,23 @@ end
 local function get_note(param2, instrument)
     if type(param2) ~= "number" then return end
     -- instrument should be the instrument you get from `tph_notenode.registered_instruments`
-    instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or
-      type(instrument) == "table" and instrument
-    if not (instrument and instrument.notes) then return end
+    instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
+    -- errors
+    if type(instrument) ~= "table" then
+        error("tph_notenode.get_note: provided instrument (table/string name) does not exist! "..dump(instrument))
+    end
+    if type(instrument.notes) ~= "table" then
+        error("tph_notenode.get_node: instrument lacks 'notes' table. Error with "..
+          (type(instrument.name) == "string" and instrument.name or dump(instrument)) )
+    end
     -- instrument notes, will be used for clamping
     local instnotes = instrument.notes
     local notesamt = #instnotes -- notes amount (amount of notes)
+    -- no numbered indexes, you gave me a faulty one!
+    if not notesamt then
+        error("tph_notenode.get_node: instrument's notes does NOT have numbered indexes! Error with "..
+          (type(instrument.name) == "string" and instrument.name or dump(instrument)) )
+    end
     if not notesamt then return end -- no numbered indexes, you gave me a faulty one!
     -- +1 as lua tables start with 1 not 0
     param2 = param2 + 1
@@ -565,10 +576,22 @@ tph_notenode.convert_param2_to_note = get_note
 -- convert note table back to param2
 local function convert_note(note, instrument)
     instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
-    if not (type(note) == "table" and type(instrument)) == "table" then return end
-    local instnotes = instrument.notes
+    -- oops!
+    if type(note) ~= "table" then
+        error("tph_notenode.convert_note_to_param2: provided note is NOT table! "..type(note))
+    end
+    if type(instrument) ~= "table" then
+        error("tph_notenode.convert_note_to_param2: provided instrument does not exist! (string name, or needs to be table)")
+    end
+    local instnotes = instrument.notes -- instrument notes
     local octrange = instrument.octave_range
-    if not (note.octave and instnotes and octrange) then return end
+    -- oops! x2
+    if type(note.octave) ~= "number" then
+        error("tph_notenode.convert_note_to_param2: provided note table does not have an 'octave' number! "..type(note.octave))
+    end
+    if not (type(instnotes) == "table" and type(octrange) == "table") then
+        error("tph_notenode.convert_note_to_param2: provided instrument does not have 'notes' or 'octave_range'!")
+    end
     -- clamp octave
     -- too low, go to first note's param2 equivalent
     if note.octave < octrange[1] then
@@ -663,6 +686,7 @@ end
 -- notenode functions
 
 -- ditto to get_instrument function, except it's the expected notenode's get_instrument functionality
+-- basically the basic function for getting an instrument for a notenode, use `tph_notenode.get_instrument` to customize your own
 -- permits getting meta from node core stacks - including non-nodes
 local function notenode_get_instrument(pos, node, bpos, bnode)
     -- below
@@ -687,6 +711,10 @@ end
 
 tph_notenode.notenode_get_instrument = notenode_get_instrument
 
+-- should be used in `on_punch`
+-- plays sound and produces a particle effect
+-- instrument and note are optional
+-- player isn't used unless it's Exile (also optional)
 local function notenode_play_instrument(pos, node, instrument, note, player)
     node = node or core.get_node(pos)
     local ndef = core.registered_nodes[node.name]
