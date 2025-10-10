@@ -200,3 +200,44 @@ Made from me humming weirdly - but heavily edited
 Imperfect sawtooth-y sound
 
 Made from me humming with my teeth - but also heavily edited!
+
+
+
+
+# Game-Specific Instruments
+
+Instruments created using the sound files provided in certain games! They will be unique to these games - and only possible on them!
+
+## `Exile`
+
+Instruments that play in Exile, specifically!
+
+## Exile Bell (`exilebell`)
+
+`artifacts_bell.ogg`
+
+Uses the sound that the bell plays every 12 in-game hours (midnight, midday)
+
+
+## Exile Singing Stone (`exilesingstone`)
+
+`artifacts_singing_stone.ogg`
+
+Exile v4 exclusive! Uses the sound that the singing stones produce!
+
+
+
+
+# Mod-Specific Instruments
+
+Instruments created using the sounds files provided in certain mods! Unique specifically to said mods - and no where else!
+
+## `Nodecore Bells`
+
+The one and only - uses the bell audio provided by GreenXenith's mod for Nodecore!
+
+## Nodecore Bell (`ncbell`)
+
+`ncbells_ding.ogg`
+
+The bell sound that plays when you hit a Nodecore Bell with a mallet
