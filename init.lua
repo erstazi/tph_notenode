@@ -468,6 +468,8 @@ local function get_instrument_raw(pos, node, ndef)
         return cinstrument
     end
 end
+-- added so that you can do more specific functionality - but `tph_notenode.get_instrument` is more recommended
+tph_notenode.raw_get_instrument = get_instrument_raw
 
 -- ditto to the above function, except this returns a default instrument on failure
 -- pos, node table, node definition
@@ -485,7 +487,7 @@ local function get_instrument(pos, node, ndef)
     end
     return inst
 end
--- only permit the purified version to be accessed
+-- you should ONLY use this for getting an instrument (as it provides default on failure)
 tph_notenode.get_instrument = get_instrument
 
 --
@@ -645,6 +647,8 @@ local function get_staff_from_pointed_thing(pointed_thing, staffonly)
     -- return
     return staff
 end
+-- so that you can check too!
+tph_notenode.get_staff_from_pointed_thing = get_staff_from_pointed_thing
 
 --------------------------------
 -- CREATING THE NOTENODE NODE
@@ -714,7 +718,7 @@ local function notenode_get_instrument(pos, node, bpos, bnode)
     -- return instrument corresponding to below node
     return get_instrument(bpos, bnode)
 end
-
+-- expects to be used in node definition - ideally in `on_punch`
 tph_notenode.notenode_get_instrument = notenode_get_instrument
 
 -- should be used in `on_punch`
@@ -736,7 +740,7 @@ local function notenode_play_instrument(pos, node, instrument, note, player)
     })
     noteparticle(pos, note, instrument)
 end
-
+-- expects to be used in node definition
 tph_notenode.notenode_play_instrument = notenode_play_instrument
 
 
