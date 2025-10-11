@@ -1,4 +1,8 @@
-# LIST OF PROVIDED INSTRUMENTS:
+Every created instrument will have `tph_notenode_`(name) as a group, for example of the default `donk`: `groups.tph_notenode_donk = 1`
+
+Notenodes check the groups of the node below - and play according to the highest prioritized instrument
+
+Groups are the provided bullet points after sound information
 
 # Base Instruments
 
@@ -14,6 +18,8 @@ Meant to act similar to Minecraft's Harp - but instead seems to sound like a mix
 
 Made from flicking a button on a mouse - which seems connected to some form of spring
 
+- no groups beyond `tph_notenode_donk`!
+
 
 ## Clack
 
@@ -22,6 +28,8 @@ Made from flicking a button on a mouse - which seems connected to some form of s
 Meant to imitate Minecraft's "Clicks and Sticks"
 
 Made from scratching a plastic battery pack
+
+- glass
 
 
 ## Metal
@@ -32,6 +40,10 @@ Basic metallic sound
 
 Made from finger-flicking a bed frame metal pole
 
+- metal
+- metallic
+- lodey
+
 
 ## Tin
 
@@ -40,6 +52,9 @@ Made from finger-flicking a bed frame metal pole
 Weird artificial bassy sound. Idea behind it was because "tin" IRL has a different sound - such as when you twist it - "tin cry". But this sound overall isn't good quality
 
 Made from hitting the top of a plastic nutella container's lid
+
+- refined_tin
+- (IF NODECORE) adobe
 
 
 ## String Bass
@@ -50,6 +65,9 @@ Meant to imitate a bass instrument - and is plucky
 
 Made from plucking a spread-out shoelace
 
+- tree
+- log
+
 
 ## Stone
 
@@ -58,6 +76,13 @@ Made from plucking a spread-out shoelace
 Soft slightly-bassy hit sound. Like a pillow being hit
 
 Made from dragging my fingers across a zipper
+
+- stone
+- material_stone
+- boulder
+- cobble
+- ore
+- (IF EXILE) masonry
 
 
 ## Bamboo
@@ -68,6 +93,10 @@ Sounds sort-of marimba-y
 
 Made from hitting an actual bamboo plant!
 
+- sapling
+- bamboo_block
+- woody_plant
+
 
 ## Water
 
@@ -76,6 +105,8 @@ Made from hitting an actual bamboo plant!
 Name is quite self-explanatory - water splash!
 
 Made from moving around in a bathtub of water
+
+- water
 
 
 ## Bottle Flute
@@ -86,6 +117,9 @@ Air-y, somewhat made to imitate Minecraft's flute
 
 Made from blowing into a glass bottle, x2 pitch
 
+- clay
+- flutey
+
 
 ## Xylophone
 
@@ -94,6 +128,9 @@ Made from blowing into a glass bottle, x2 pitch
 Bell-ish sound, xylophone-esque
 
 Made from flicking at a glass bottle (same one as the bottle Flute!)
+
+- refined_gold
+- (IF AGE OF MENDING) gilded
 
 
 ## Doap
@@ -104,12 +141,21 @@ Poppy soft mallet pluck sound - sort of like hitting the top of a airy bottle
 
 Made from pulling finger tightly out of a glass bottle (same one as the Bottle Flute!)
 
+- rail
+- pumpkin
+- (IF AGE OF MENDING) item_arlior_growth
+- (IF AGE OF MENDING) item_arlior_growth_purple
+
 
 ## Bowl Hit
 
 `tph_notenode_bowlhit.ogg`
 
 Literally a ceramic bowl being hit! Clank sound with some soft cowbell notes (if a cowbell learned vibrato!)
+
+- ice
+- pottery
+- (IF AGE OF MENDING) terracotta
 
 
 ## Air Whistle
@@ -120,6 +166,8 @@ Whistley airy sound
 
 Made from me blowing a whistley sound with my mouth lol
 
+- air
+
 
 ## Paper Snare
 
@@ -128,6 +176,9 @@ Made from me blowing a whistley sound with my mouth lol
 Sort-of crackly imperfect snare sound
 
 Made from me hitting a paper recyclable bag
+
+- gravel
+- item_gravel
 
 
 ## Metallic Twang
@@ -138,6 +189,8 @@ Clicky mostly twang-y metallic sound
 
 Made from flicking a small metal cooking pot
 
+- copper
+
 
 ## Sonar
 
@@ -146,6 +199,9 @@ Made from flicking a small metal cooking pot
 Synthetic ding/telephone-like "operator" sound
 
 Made from banging bits of my thermos - and then REALLY HEAVY editing
+
+- snowy
+- snow
 
 
 ## Metallic Pile
@@ -156,6 +212,8 @@ Similar to a bunch of metal pipes falling - except lighter. Perhaps like thin po
 
 Made from banging metal coat hangers together
 
+- (IF AGE OF MENDING) granite
+
 
 ## String
 
@@ -164,6 +222,10 @@ Made from banging metal coat hangers together
 Muted soft guitar-y sound
 
 Made from plucking the string of a falling-apart sock
+
+- material_wood
+- wood
+- planks
 
 
 ## Soft Horn
@@ -174,6 +236,10 @@ Soft brassy trumpet-ish sound, sounds slightly animalistic
 
 Made from blowing air with my mouth similar to Air Whistle - however shaping my lips differently
 
+- flora
+- fibrous_plant
+- (IF REPIXTURE) plant
+
 
 ## Bell
 
@@ -182,6 +248,9 @@ Made from blowing air with my mouth similar to Air Whistle - however shaping my 
 Doorbell-esque sound, simple percussion bell sound
 
 Made from flicking a small iron horseshoe
+
+- chime
+- (IF AGE OF MENDING) scaffolding
 
 
 ## Organ
@@ -192,6 +261,11 @@ Electronic organ sorta sound
 
 Made from me humming weirdly - but heavily edited
 
+- coalblock
+- coalstone
+- organ
+- (IF AGE OF MENDING) item_compost
+
 
 ## Sawtooth
 
@@ -200,6 +274,9 @@ Made from me humming weirdly - but heavily edited
 Imperfect sawtooth-y sound
 
 Made from me humming with my teeth - but also heavily edited!
+
+- meseblock
+- (IF AGE OF MENDING) glow_rock
 
 
 
@@ -218,12 +295,16 @@ Instruments that play in Exile, specifically!
 
 Uses the sound that the bell plays every 12 in-game hours (midnight, midday)
 
+- no groups, uses the artifacts bell
+
 
 ## Exile Singing Stone (`exilesingstone`)
 
 `artifacts_singing_stone.ogg`
 
 Exile v4 exclusive! Uses the sound that the singing stones produce!
+
+- no groups, uses the singing stones
 
 
 
@@ -241,3 +322,5 @@ The one and only - uses the bell audio provided by GreenXenith's mod for Nodecor
 `ncbells_ding.ogg`
 
 The bell sound that plays when you hit a Nodecore Bell with a mallet
+
+- no groups, uses ncbell bells
