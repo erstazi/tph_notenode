@@ -493,35 +493,61 @@ tph_notenode.get_instrument = get_instrument
 --
 -- spawns a little eighth note above the notenode
 
-local function noteparticle(pos, note, instrument, y)
+-- note is optional but is used for getting initial colour (unless you specify `colour` parameter)
+-- instrument is optional but is used for changing how dark or light the note's colour is (requires note)
+-- y is optional - only used for custom y interactions
+-- colour is optional - you shouldn't need to, but it's permitted! overrides note colour
+local function noteparticle(pos, note, instrument, y, colour)
     pos = vector.new(pos)
-    pos.y = pos.y + (y or 0.75)
+    pos.y = pos.y + (type(y) == "number" and y or 0.75)
     -- randomize position to prevent zindex fighting
     local range = 100
     pos.x, pos.z = pos.x + (math.random(-range,range)/1000), pos.z + (math.random(-range,range)/1000)
     local texture = "tph_notenode_note_eighth.png"
-    -- figure out colour
-    if note and instrument then
-        instrument = type(instrument) == "string" and instruments[instrument] or instrument
-        texture = texture.."^[multiply:"..notecolours[note.num]
-        -- get octaves
-        local octave, midoctave = note.octave, instrument.basenotes[1].octave
-        -- add darkness or lightness
-        if octave ~= midoctave then
-            local divideby = midoctave+10
-            -- higher, add lightness
-            if octave > midoctave then
-                octave = octave-midoctave -- difference between octave and base octave
-                octave = math.ceil(200*(octave/divideby)) -- round up
-                texture = texture.."^[colorize:#ffffff:"..octave
-            -- lower, add darkness
-            elseif octave < midoctave then
-                octave = midoctave - octave
-                octave = math.ceil(200*(octave/divideby))
-                texture = texture.."^[colorize:#000000:"..octave
+    -- figure out colour (if provided, needs to be hex colour)
+    colour = type(colour) == "string" and colour:sub(1,1) == "#" and
+      -- regular or alpha colour variants only
+      (#colour == 7 or #colour == 9) and colour or nil
+    local has_note = type(note) == "table" -- close enough
+    -- derive colour from note's num (which should be between 1 and 12!)
+    if (has_note and note.num) and not colour then
+        colour = notecolours[note.num]
+    end
+    -- format
+    colour = colour and csg("", "^[multiply:", colour) or nil
+    -- check instrument (ONLY IF COLOUR EXISTS AND NOTE HAS OCTAVE)
+    if colour and has_note and type(note.octave) == "number" then
+        instrument = type(instrument) == "string" and instruments[instrument] and instrument or instrument
+        -- instrument must be a table with a `basenotes` table - of which must have a number octave
+        instrument = type(instrument) == "table" and
+          (type(instrument.basenotes) == "table" and type(instrument.basenotes[1]) == "table" and
+          type(instrument.basenotes[1].octave) == "number") and instrument or nil
+        -- add darkness or lightness!
+        if instrument and colour then
+            -- get octaves
+            local octave, midoctave = note.octave, instrument.basenotes[1].octave
+            -- only add to if octave does not equal mid octave (base octave)
+            if octave ~= midoctave then
+                local divideby = midoctave+10
+                -- higher, add lightness
+                if octave > midoctave then
+                    octave = octave-midoctave -- difference between octave and base octave
+                    octave = math.ceil(200*(octave/divideby)) -- round up
+                    colour = csg("", colour, "^[colorize:#ffffff", octave)
+                    --colour = colour.."^[colorize:#ffffff:"..octave
+                -- lower, add darkness
+                elseif octave < midoctave then
+                    octave = midoctave - octave
+                    octave = math.ceil(200*(octave/divideby))
+                    colour = csg("", colour, "^[colorize:#000000", octave)
+                    --colour = colour.."^[colorize:#000000:"..octave
+                end
             end
         end
     end
+    -- add to texture now
+    texture = csg("", texture, colour)
+    -- add particle!
     core.add_particle({
         pos = pos,
         texture = texture,
@@ -535,6 +561,8 @@ local function noteparticle(pos, note, instrument, y)
         drag = {x=0, y=7, z=0},
     })
 end
+-- add to global
+tph_notenode.produce_note_particle = noteparticle
 
 -- convert raw param2 to a tangible note
 local function get_note(param2, instrument)
