@@ -533,14 +533,12 @@ local function noteparticle(pos, note, instrument, y, colour)
                 if octave > midoctave then
                     octave = octave-midoctave -- difference between octave and base octave
                     octave = math.ceil(200*(octave/divideby)) -- round up
-                    colour = csg("", colour, "^[colorize:#ffffff", octave)
-                    --colour = colour.."^[colorize:#ffffff:"..octave
+                    colour = csg("", colour, "^[colorize:#ffffff:", octave)
                 -- lower, add darkness
                 elseif octave < midoctave then
                     octave = midoctave - octave
                     octave = math.ceil(200*(octave/divideby))
-                    colour = csg("", colour, "^[colorize:#000000", octave)
-                    --colour = colour.."^[colorize:#000000:"..octave
+                    colour = csg("", colour, "^[colorize:#000000:", octave)
                 end
             end
         end
