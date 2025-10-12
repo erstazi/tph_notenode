@@ -410,6 +410,9 @@ if depends.ncbells then
       })
 end
 
+-- add to global
+tph_notenode.register_instrument = register_instrument
+
 -- for debugging purposes, gets notenodes to ONLY play notes within a certain chord
 local chords = {
     Cm = {"C", "D", "D#", "F", "G", "G#", "A"},
