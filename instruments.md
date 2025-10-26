@@ -1,3 +1,35 @@
+# What plays what!
+
+## Minetest Game
+Block								Sound
+----------------------------------------------------
+Any non-special						Donk
+Glass								Clack
+Metal Blocks						Metal
+Tin Block							Tin
+Logs								Stringed Bass
+Stone								Stone (bass drum-ish)
+Sapling/Woody Plants/Bush Stems		Bamboo
+Water								Water
+Clay								Bottle Flute
+Gold Block							Xylophone
+Rail/Pumpkin						Doap (soft synthetic percussion sound)
+Ice									Bowl Hit
+Air									Air Whistle
+Gravel								Paper Snare
+Copper Block						Metallic Twang
+Snow								Sonar
+Diamond Block						Metallic Pile
+Wooden Planks						String (Guitar-ish)
+Grasses/Growing Plants				Soft Horn
+Steel Bars							Bell
+Coal Block							Organ
+Mese Block							Sawtooth
+
+
+
+# FOR DEVELOPERS
+
 Every created instrument will have `tph_notenode_`(name) as a group, for example of the default `donk`: `groups.tph_notenode_donk = 1`
 
 Notenodes check the groups of the node below - and play according to the highest prioritized instrument
