@@ -653,28 +653,60 @@ tph_notenode.convert_note_to_param2 = convert_note
 ----------
 -- more node-ish functions
 
+-- requires 5.5+ because of vector functions
+--- get cartesian coordinate in string (-X, +X, -Z, +Z, -Y, +Y), Y will be upwards-downwards, from pointed_thing
+--- @param pointed_thing table pointed_thing produced by node callbacks
+local function get_pointed_thing_node_face(pointed_thing)
+    -- get our informative errors out of the way
+    if type(pointed_thing) ~= "table" then
+        error("tph_notenode.get_pointed_thing_node_face: given improper pointed thing, not a table! Type: "
+          ..type(pointed_thing))
+    end
+    -- bad, BAD!
+    if pointed_thing.type ~= "node" then
+        error("tph_notenode.get_pointed_thing_node_face: pointed thing is NOT a node!")
+    end
+    -- how, how did you screw this up???
+    if not (pointed_thing.under and pointed_thing.above) then
+        error("tph_notenode.get_pointed_thing_node_face: pointed thing lacks under and above positions")
+    end
+    -- shorthand for comparison
+    local pos = pointed_thing.under
+    -- figure out face position
+    local face = (pointed_thing.above + pos)/2
+    -- GET *the* face!
+    face = face.x == (pos.x - 0.5) and "-X" or face.x == (pos.x + 0.5) and "+X" or
+      face.z == (pos.z - 0.5) and "-Z" or face.z == (pos.z + 0.5) and "+X" or
+      face.y == (pos.y - 0.5) and "-Y" or face.y == (pos.y + 0.5) and "+Y"
+    -- oops
+    if not face then
+        error("tph_notenode.get_pointed_thing_node_face: improper under and above positions for pointed_thing"..
+          ", could not get face")
+    end
+    return face
+end
+
 -- get whether or not this is a treble or clef - with options for "bottom" and "top"
 -- if staffonly is true, do not return "bottom" or "top"
-local function get_staff_from_pointed_thing(pointed_thing, staffonly)
-    -- some games do really weird stuff and don't properly send over a pointed_thing, return
-    if not (type(pointed_thing) == "table" and pointed_thing.type == "node" and
-      pointed_thing.under and pointed_thing.above) then return end
-    -- where the node was clicked
-    local face = (pointed_thing.above + pointed_thing.under)/2
-    local pos = pointed_thing.under
-    -- check if we should decrease or increase the pitch of notes, or not
-    local staff = ( face.x == (pos.x - 0.5) or face.z == (pos.z - 0.5) ) and "treble" or
-      -- bass
-      ( face.x == (pos.x + 0.5) or face.z == (pos.z + 0.5) ) and "bass"
-    -- return top or bottom (if staffonly isn't specified)
-    if not staff and not staffonly then
-        -- top
-        staff = face.y == (pos.y + 0.5) and "top" or
-        -- bottom
-        face.y == (pos.y - 0.5) and "bottom"
+--- get whether or not provided "thing" value translate to a treble or clef
+--- @param thing table expected pointed_thing table, but can be string result from get_pointed_thing_node_face
+local function get_staff_from_pointed_thing(thing, staffonly)
+    -- permit result from above function (string)
+    if type(thing) ~= "string" then
+        -- don't wanna do crashing errors in this household
+        local success, errinfo = pcall(function()
+            thing = get_pointed_thing_node_face(thing)
+            thing = thing:lower()
+        end)
     end
-    -- return
-    return staff
+    -- couldn't get a face
+    if type(thing) ~= "string" then return end
+    -- figure out staff now! and return!
+    return (thing == "-x" or thing == "-z") and "treble" or
+      (thing == "+x" or thing == "+z") and "bass" or
+      -- return top or bottom if staffonly isn't specified
+      not staffonly and (thing == "-y" and "bottom" or thing == "+y" and "top") or
+      nil
 end
 -- so that you can check too!
 tph_notenode.get_staff_from_pointed_thing = get_staff_from_pointed_thing
@@ -682,6 +714,8 @@ tph_notenode.get_staff_from_pointed_thing = get_staff_from_pointed_thing
 --------------------------------
 -- CREATING THE NOTENODE NODE
 
+-- getting placement sounds for notenode, and instrumental device (if is_device is true)
+-- needing different sound-getting functionality for each game
 local function get_node_sound(is_device)
     -- nil dig sound to prevent disruption of instrument notes
     local sound = {dig={name=""}}
