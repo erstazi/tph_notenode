@@ -125,7 +125,9 @@ end
 tph_notenode.registered_instruments = {}
 
 -- list of instruments to play for specific groups
-local play_for_group = {}
+local playing_groups = {}
+-- make a protected metatable
+tph_notenode.playing_groups = create_unwritable(playing_groups, "playing_groups")
 
 ------------------------------------------
 -- register an instrument
@@ -233,9 +235,7 @@ local function register_instrument(name, def, groups, noteC)
     octrange[2] = noteC.octave + octrange[2]
     -- figure out groups if specified
     groups = type(groups) == "string" and {groups} or groups
-    -- our own playing groups
-    def.playing_groups = {}
-    -- add to play_for_group
+    -- add to playing_groups
     if type(groups) == "table" then
         -- choice priority (higher numbers = less likely to be picked if a lower number or none exists)
         local lowprty = groups.lowprty
@@ -246,25 +246,24 @@ local function register_instrument(name, def, groups, noteC)
         -- iterate through specified groups
         for _,grpname in ipairs(groups) do
             -- play this instrument for this group
-            -- as long as it doesn't start with `tph_notenode`
+            -- as long as it doesn't start with `tph_notenode` (active mod name, AMN)
             if type(grpname) == "string" and grpname:sub(1,12) ~= amn then
-                local oldstrument = play_for_group[grpname] -- if another instrument exists here
+                local oldstrument = playing_groups[grpname] -- if another instrument exists here
                 oldstrument = oldstrument and instruments[oldstrument]
-                -- erase this group from old instrument's list of playing
-                if oldstrument and oldstrument.playing_groups then
-                    oldstrument.playing_groups[grpname] = nil
+                -- we'll be replacing the group's instrument with ours
+                -- make a warn log
+                if oldstrument then
+                    core.log("warn", csg("", "tph_notenode: replacing instrument '", oldstrument,
+                      "' with '", name, "' for group '", grpname, "'") )
                 end
                 -- add or replace the group with ourselves
-                play_for_group[grpname] = name
-                -- add to our own little groups table
-                def.playing_groups[grpname] = true
+                playing_groups[grpname] = name
             end
         end
     end
     -- add ourself to playing groups
     local instgrpname = csg("", amn, "_", name) -- instrument group name
-    play_for_group[instgrpname] = name
-    def.playing_groups[instgrpname] = true
+    playing_groups[instgrpname] = name
     -- low priority mechanics
     def.choice_priority = type(def.choice_priority) == "number" and def.choice_priority > 0 and def.choice_priority or
       nil
@@ -444,32 +443,30 @@ local function get_instrument_raw(pos, node, ndef)
     -- could not find a specified instrument, aight!
     -- check groups
     local groups = ndef.groups
-    if type(groups) == "table" then
-        local cinstrument -- chosen instrument
-        for grpname, grpnum in pairs(groups) do
-            local instrument = play_for_group[grpname] -- instrument name
-            -- only set playing instrument if found successfully
-            if instrument and grpnum > 0 then
-                instrument = instruments[instrument] -- get actual instrument definition
-                -- no chosen instrument yet
-                if not cinstrument then
-                    cinstrument = instrument
-                end
-                -- old (low) priority, current (low) priority
-                local oprty, cprty = cinstrument.choice_priority, instrument.choice_priority or 0
-                -- not to continue looking for more instruments if no low priority specified, break
-                if cprty == 0 then
-                    cinstrument = instrument -- we choose the one with no low priority specified (higher priority)
-                    break
-                end
-                -- replace with higher priority (lower number)
-                if cprty < oprty then
-                    cinstrument = instrument
-                end
+    if type(groups) ~= "table" then return end -- oops, no groups, no instrumento!
+    local cinstrument -- chosen instrument
+    for grpname, grpnum in pairs(groups) do
+        local instrument = playing_groups[grpname] -- instrument name
+        -- only set playing instrument if found successfully
+        if instrument and grpnum > 0 then
+            instrument = instruments[instrument] -- get actual instrument definition
+            -- no chosen instrument yet
+            if not cinstrument then
+                cinstrument = instrument
+            end
+            -- old (low) priority, current (low) priority
+            local oprty, cprty = cinstrument.choice_priority, instrument.choice_priority or 0
+            -- not to continue looking for more instruments if no low priority specified, break
+            if cprty == 0 then
+                return instrument -- we choose the one with no low priority specified (higher priority)
+            end
+            -- replace with higher priority (lower number)
+            if cprty < oprty then
+                cinstrument = instrument
             end
         end
-        return cinstrument
     end
+    return cinstrument
 end
 -- added so that you can do more specific functionality - but `tph_notenode.get_instrument` is more recommended
 tph_notenode.raw_get_instrument = get_instrument_raw
