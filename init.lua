@@ -326,7 +326,7 @@ end
 -- lowprty can be specified in groups for it to be overriden by another instrument in choice making
 
 -- simple bling-like synthy sound, springy (made from a spring inside of a mouse)
-register_instrument(nil, "tph_notenode_donk", nil, {hertz=259.459}) -- base instrument
+register_instrument(nil, "tph_notenode_donk") -- base instrument
 -- clacky kinda sound (made from scratching a plastic battery pack)
 -- was "klalk"
 register_instrument(nil, "tph_notenode_clack", "glass")
