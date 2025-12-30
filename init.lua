@@ -426,6 +426,10 @@ local default_instrument = "donk"
 
 -- pos, node, and ndef must be what is BELOW the note node
 -- node definition is the only requirement but yea
+--- returns instrument table on success, otherwise nil on failure
+--- @param pos? vector3 not required if node or ndef are provided, position of node to grab instrument from
+--- @param node? table not required if position or ndef is provided, core.get_node result of pos
+--- @param ndef? table not required if position or node is provided, registered node table of node to grab instrument from
 local function get_instrument_raw(pos, node, ndef)
     if not ndef then
         node = node or core.get_node(pos)
@@ -472,8 +476,10 @@ end
 tph_notenode.raw_get_instrument = get_instrument_raw
 
 -- ditto to the above function, except this returns a default instrument on failure
--- pos, node table, node definition
--- only actually needs node definition, but permits a pos and node argument
+--- utilizes raw_get_instrument function to get instrument table, except returns default instrument on failure to retrieve
+--- @param pos? vector3 not required if node or ndef are provided, position of node to grab instrument from
+--- @param node? table not required if position or ndef is provided, core.get_node result of pos
+--- @param ndef? table not required if position or node is provided, registered node table of node to grab instrument from
 local function get_instrument(pos, node, ndef)
     local inst = get_instrument_raw(pos, node, ndef)
     if not inst then
@@ -490,13 +496,13 @@ end
 -- you should ONLY use this for getting an instrument (as it provides default on failure)
 tph_notenode.get_instrument = get_instrument
 
---
--- spawns a little eighth note above the notenode
 
--- note is optional but is used for getting initial colour (unless you specify `colour` parameter)
--- instrument is optional but is used for changing how dark or light the note's colour is (requires note)
--- y is optional - only used for custom y interactions
--- colour is optional - you shouldn't need to, but it's permitted! overrides note colour
+--- spawns a little eighth note above position, y position and colour can be adjusted
+--- @param pos vector3 position to spawn note at
+--- @param note? table note table containing valid 'num' and 'octave', not required for producing particle
+--- @param instrument? table instrument table containing valid 'basenotes', required for octave-dependent colour shading, requires note table being provided
+--- @param y? number how much to add to Y axis to position, defaults to 0.75 if not specified
+--- @param colour? string if provided, must be hexadecimal colour string
 local function noteparticle(pos, note, instrument, y, colour)
     pos = vector.new(pos)
     pos.y = pos.y + (type(y) == "number" and y or 0.75)
@@ -562,7 +568,10 @@ end
 -- add to global
 tph_notenode.produce_note_particle = noteparticle
 
--- convert raw param2 to a tangible note
+
+--- convert raw node param2 to a tangible playable note table
+--- @param param2 table core.get_node() table's param2
+--- @param instrument table|string instrument name/table, table containing 'notes'
 local function get_note(param2, instrument)
     if type(param2) ~= "number" then
         error("tph_notenode.convert_param2_to_note: provided param2 is NOT a number! "..type(param2))
@@ -607,7 +616,10 @@ end
 -- if given a param2 and instrument (or instrument name), returns playable note
 tph_notenode.convert_param2_to_note = get_note
 
--- convert note table back to param2
+
+--- convert note table back to param2
+--- @param note table note table containing valid 'octave' and 'num'
+--- @param instrument table|string instrument name/table, table containing valid 'octave_range' and 'notes'
 local function convert_note(note, instrument)
     instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
     -- oops!
@@ -683,10 +695,10 @@ local function get_pointed_thing_node_face(pointed_thing)
     return face
 end
 
--- get whether or not this is a treble or clef - with options for "bottom" and "top"
--- if staffonly is true, do not return "bottom" or "top"
---- get whether or not provided "thing" value translate to a treble or clef
+
+--- get whether or not provided "thing" value translates to a treble or clef, with options for "bottom" and "top"
 --- @param thing table expected pointed_thing table, but can be string result from get_pointed_thing_node_face
+--- @param staffonly? boolean if true, do not return "bottom" or "top", instead returning nil
 local function get_staff_from_pointed_thing(thing, staffonly)
     -- permit result from above function (string)
     if type(thing) ~= "string" then
@@ -756,8 +768,12 @@ end
 -- notenode functions
 
 -- ditto to get_instrument function, except it's the expected notenode's get_instrument functionality
--- basically the basic function for getting an instrument for a notenode, use `tph_notenode.get_instrument` to customize your own
--- permits getting meta from node core stacks - including non-nodes
+--- basically the basic function for getting an instrument for a notenode, use `tph_notenode.get_instrument` to customize your own
+--- permits getting meta from node core stacks - including non-nodes
+--- @param pos vector3 position of notenode
+--- @param node table `core.get_node` result of notenode (not actually used, kept in for convenience with builtin functions)
+--- @param bpos? vector3 position below notenode, can be calculated from notenode's position
+--- @param bnode? `core.get_node` result of bpos, can be grabbed from bpos
 local function notenode_get_instrument(pos, node, bpos, bnode)
     -- below
     if not bpos then
@@ -781,10 +797,14 @@ end
 -- expects to be used in node definition - ideally in `on_punch`
 tph_notenode.notenode_get_instrument = notenode_get_instrument
 
--- should be used in `on_punch`
--- plays sound and produces a particle effect
--- instrument and note are optional
--- player isn't used unless it's Exile (also optional)
+
+
+--- plays sound and produces a particle effect, should be used in node's on_punch
+--- @param pos vector3 position of notenode
+--- @param node? table core.get_node() result of pos, node table of notenode, can be grabbed from pos
+--- @param instrument? expects instrument table if provided, otherwise determines instrument from below node
+--- @param note? expects note table produced by convert_param2_to_note function, otherwise grabbed from node's param2
+--- @param player? used exclusively in Exile
 local function notenode_play_instrument(pos, node, instrument, note, player)
     node = node or core.get_node(pos)
     local ndef = core.registered_nodes[node.name]
