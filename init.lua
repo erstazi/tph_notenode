@@ -30,7 +30,8 @@ end
 -- indexing is a table to be indexed
 -- indexingdesc is the name/description of the table (unnecessary to provide if errmsg is specified)
 -- errmsg is not required if indexingname is specified
-local function create_unwritable(indexing, indexingdesc, errmsg)
+-- IF hastables (has table values), then clone for pairs() functionality
+local function create_unwritable(indexing, indexingdesc, errmsg, hastables)
     errmsg = errmsg or csg(" ", "writing to", indexingdesc, "is unsupported")
     errmsg = csg(" ", amnpf, errmsg) -- prefix
     return setmetatable({},{
@@ -39,6 +40,16 @@ local function create_unwritable(indexing, indexingdesc, errmsg)
         end,
         __newindex = function(t, key, value)
             error(csg(" ", "Blocked write from mod:", get_cmn()) )
+        end,
+        -- use https://content.luanti.org/packages/TPH/metatable_metamethods/ for iteration
+        -- indexing has table values, ensure to return a copy instead!
+        __pairs = hastables and function(t)
+            return pairs( table.copy(indexing) )
+        end or
+        -- doesn't have table values, just do as normal
+        function(t)
+            -- won't return actual table, so can't be modified
+            return pairs(indexing)
         end
     })
 end
@@ -87,9 +98,9 @@ local notecolours = {"#ff0000","#ff8000","#ffff00","#80ff00","#00ff00","#00ff80"
 do
     local notesdata = {}
     -- notes 1 to 12 (C to B), indexed in such a way
-    notesdata.names = create_unwritable(notenames, "nodedata.names")
+    notesdata.names = create_unwritable(notenames, "notesdata.names")
     -- colours associated to the named notes
-    notesdata.colours = create_unwritable(notecolours, "notedata.colours")
+    notesdata.colours = create_unwritable(notecolours, "notesdata.colours")
     -- now to metatable notesdata
     tph_notenode.notesdata = setmetatable({}, {
         __index = function(t, key)
@@ -101,6 +112,11 @@ do
         __newindex = function(t, key, value)
             error(csg(" ", amnpf, "writing to notesdata table is unsupported. Blocked write from mod:",
               get_cmn()) )
+        end,
+        -- use https://content.luanti.org/packages/TPH/metatable_metamethods/ for iteration
+        __pairs = function(t)
+            -- return copy as we have tables that CAN be modified
+            return pairs( table.copy(notesdata) )
         end
     })
 end
@@ -158,6 +174,11 @@ do
             end
             -- NOW to ACTUALLY set it!
             modifiablecolours[key] = value
+        end,
+        -- use https://content.luanti.org/packages/TPH/metatable_metamethods/ for iteration
+        __pairs = function(t)
+            -- won't return actual table, so can't be modified
+            return pairs(modifiablecolours)
         end
     })
 end
@@ -343,6 +364,11 @@ local function register_instrument(name, def, groups, noteC)
         __newindex = function(t, key, value)
             error(csg("", amnpf," registered_instruments violation; not permitted to write to '", name,
               "' instrument. Blocked write from mod: ", get_cmn()) )
+        end,
+        -- use https://content.luanti.org/packages/TPH/metatable_metamethods/ for iteration
+        __pairs = function(t)
+            -- has table values that can be modified, return copy!
+            return pairs( table.copy(def) )
         end
     })
     -- lower the priority of all base instruments by 3
