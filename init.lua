@@ -82,9 +82,6 @@ local notenames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "
 -- for use by noteparticle function
 local notecolours = {"#ff0000","#ff8000","#ffff00","#80ff00","#00ff00","#00ff80","#00ffff", -- C - F
   "#0080ff","#0000ff","#7f00ff","#ff00ff","#ff0080"} -- F# to B
--- for + and - symbols
--- minus="#940b01", plus="#019410"
-local plusminuscolours = {minus = "#de1c02", plus = "#02de19"}
 
 -- make notesdata metatable
 do
@@ -107,6 +104,66 @@ do
         end
     })
 end
+
+-- colours that we let external API modify
+local modifiablecolours = {
+    -- for - and + symbols - red and green
+    minus = "#de1c02", plus = "#02de19"
+}
+-- make metatable for changing modifiable colours
+do
+    tph_notenode.colours = setmetatable({}, {
+        __index = function(t, key)
+            return modifiablecolours[key]
+        end,
+        -- ensure purification of passed colour value
+        -- must be hex (can be without hash or be incompleted)
+        __newindex = function(t, key, value)
+            if not modifiablecolours[key] then return end -- fail, can't add new colours
+            if type(value) ~= "string" then
+                error(csg("", amnpf, " attempting to set colour '",key,"' to non-string type: '",type(value),"'. ",
+                  "Blocked write from mod: ", get_cmn() ) )
+            end
+            -- add # if not exist at first index
+            if value:sub(1,1) ~= "#" then
+                value = csg("", "#", value)
+            end
+            -- get length of value
+            local vallen = #value
+            -- too long! clip it!
+            if vallen > 9 then
+                value = value:sub(1, 9)
+            end
+            -- too short, add some f's
+            if vallen < 7 then
+                for i=vallen, 6 do
+                    value = csg("", value, "f")
+                end
+            -- you were TRYING to make a transparency but oof'd it!
+            elseif vallen == 8 then
+                value = csg("", value, "f")
+            end
+            -- ensure proper value
+            -- $ means string must start with hash
+            -- square brackets are used to individualize sequences
+            -- %d means any number
+            -- letters afterwards mean any of those individual characters
+            -- + means matching 1 or more in any of said places
+            local proper = value:match("[$#][%dabcdef]+")
+            -- if does not equal, there was a problem houston!
+            if value ~= proper then
+                error(csg("", amnpf, " issue setting colour '",key,"'. Invalid hex parameters ",
+                  "(uses more letters than f - or uppercase letters, or has other non-numbers). Got '", value,
+                  "'. Blocked write from mod: ", get_cmn() ) )
+            end
+            -- NOW to ACTUALLY set it!
+            modifiablecolours[key] = value
+        end
+    })
+end
+
+
+
 
 -- registered unique instruments
 local instruments = {} -- raw data
@@ -559,9 +616,9 @@ local function noteparticle(pos, note, instrument, y, colour, plusminus)
     if type(plusminus) == "boolean" then
         texture = csg("", texture, "^(",
           -- do + symbol and colouration
-          plusminus and csg("", "tph_notenode_plus.png^[multiply:", plusminuscolours.plus)
+          plusminus and csg("", "tph_notenode_plus.png^[multiply:", modifiablecolours.plus)
           -- do - symbol and colouration
-          or csg("", "tph_notenode_minus.png^[multiply:", plusminuscolours.minus), ")")
+          or csg("", "tph_notenode_minus.png^[multiply:", modifiablecolours.minus), ")")
     end
     -- add particle!
     core.add_particle({
