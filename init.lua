@@ -82,6 +82,9 @@ local notenames = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "
 -- for use by noteparticle function
 local notecolours = {"#ff0000","#ff8000","#ffff00","#80ff00","#00ff00","#00ff80","#00ffff", -- C - F
   "#0080ff","#0000ff","#7f00ff","#ff00ff","#ff0080"} -- F# to B
+-- for + and - symbols
+-- minus="#940b01", plus="#019410"
+local plusminuscolours = {minus = "#de1c02", plus = "#02de19"}
 
 -- make notesdata metatable
 do
@@ -503,7 +506,8 @@ tph_notenode.get_instrument = get_instrument
 --- @param instrument? table instrument table containing valid 'basenotes', required for octave-dependent colour shading, requires note table being provided
 --- @param y? number how much to add to Y axis to position, defaults to 0.75 if not specified
 --- @param colour? string if provided, must be hexadecimal colour string
-local function noteparticle(pos, note, instrument, y, colour)
+--- @param plusminus? boolean if true, add a + symbol, if false, add a - symbol, otherwise do not add one
+local function noteparticle(pos, note, instrument, y, colour, plusminus)
     pos = vector.new(pos)
     pos.y = pos.y + (type(y) == "number" and y or 0.75)
     -- randomize position to prevent zindex fighting
@@ -551,6 +555,14 @@ local function noteparticle(pos, note, instrument, y, colour)
     end
     -- add to texture now
     texture = csg("", texture, colour)
+    -- add symbol if boolean
+    if type(plusminus) == "boolean" then
+        texture = csg("", texture, "^(",
+          -- do + symbol and colouration
+          plusminus and csg("", "tph_notenode_plus.png^[multiply:", plusminuscolours.plus)
+          -- do - symbol and colouration
+          or csg("", "tph_notenode_minus.png^[multiply:", plusminuscolours.minus), ")")
+    end
     -- add particle!
     core.add_particle({
         pos = pos,
@@ -805,7 +817,8 @@ tph_notenode.notenode_get_instrument = notenode_get_instrument
 --- @param instrument? expects instrument table if provided, otherwise determines instrument from below node
 --- @param note? expects note table produced by convert_param2_to_note function, otherwise grabbed from node's param2
 --- @param player? used exclusively in Exile
-local function notenode_play_instrument(pos, node, instrument, note, player)
+--- @param plusminus? see tph_notenode.produce_note_particle for usage, if specified produces symbol with note
+local function notenode_play_instrument(pos, node, instrument, note, player, plusminus)
     node = node or core.get_node(pos)
     local ndef = core.registered_nodes[node.name]
     if not ndef.notenode_get_instrument then return end -- no instrument function huuuh
@@ -818,7 +831,7 @@ local function notenode_play_instrument(pos, node, instrument, note, player)
     core.sound_play(instrument.sound, {
         max_hear_distance = 48, pitch = note.val, pos = pos, gain = instrument.gain
     })
-    noteparticle(pos, note, instrument)
+    noteparticle(pos, note, instrument, nil, nil, plusminus)
 end
 -- expects to be used in node definition
 tph_notenode.notenode_play_instrument = notenode_play_instrument
@@ -862,14 +875,17 @@ local nbdef = { -- notenode definition
         -- treble for higher, bass for lower
         local addparam2 = staff == "treble" and 1 or staff == "bass" and -1
         node.param2 = node.param2 + addparam2
-        -- get instrument + rawnote + octave
+        -- get instrument
         local instrument = ndef.notenode_get_instrument(pos, node)
         -- get note for playing
         local note = get_note(node.param2, instrument)
         -- update param2 and swap the node
         node.param2 = convert_note(note, instrument)--note_octave_to_param2(instrument, note)
+        -- figure out if we should show a symbol or not - if so, which symbol
+        -- uses addparam2 to figure it out, 1 is true, any other number will be false, and if not number, nil
+        local doplusminus = addparam2 == 1 and true or type(addparam2) ~= "number" and nil
         -- play
-        ndef.notenode_play_instrument(pos, node, instrument, note, clicker)
+        ndef.notenode_play_instrument(pos, node, instrument, note, clicker, doplusminus)
         core.swap_node(pos, node)
     end,
     -- save param2 if it's different from middle C
