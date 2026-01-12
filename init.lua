@@ -382,6 +382,9 @@ end
 -- whatever it is, it doesn't like my `depends.something and "thisthing"`
 -- just better automates the `register_instrument` groups parameter that I use below
 -- has `lowprty` argument to shorten the need to type out `choice_priority`
+--- adequately and reliably permits boolean argument strings in the creation of a numbered array
+--- used for creating playing groups for an instrument reliably
+--- @param lowprty? number|string optional, if specified (as number), indicates instrument's priority below other instruments (the higher, the less priority)
 local function cigt(lowprty, ...) -- create instrument groups table
     local groups = {}
     local params = {...} -- turn it into a table!!!
@@ -390,9 +393,8 @@ local function cigt(lowprty, ...) -- create instrument groups table
         table.insert(params, 1, lowprty)
         lowprty = nil -- and erase
     end
-    -- don't use ipairs because it'll choke :rolling_eyes:
-    -- not even use a #length works either ARGH
-    for _,param in pairs(params) do
+    -- had a note about not using ipairs, seems to be fine now??
+    for _,param in ipairs(params) do
         -- only add to numbered index table if a string
         if type(param) == "string" then
             groups[#groups + 1] = param
@@ -405,6 +407,8 @@ local function cigt(lowprty, ...) -- create instrument groups table
     -- using these
     return groups
 end
+-- namespace
+tph_notenode.create_instruments_group_table = cigt
 
 -- name, groups, noteC
 -- name can be nil and grabbed from sound, groups is expected to be filled with group strings, noteC can be nil
