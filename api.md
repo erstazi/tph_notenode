@@ -9,6 +9,46 @@ If you're having issues with instruments conflicting - e.g. you set up different
 
 
 
+# Instrument Registration (`tph_notenode.register_instrument`)
+
+`tph_notenode.register_instrument(name, definition, playing_groups, noteC)`
+
+## name
+
+`string` or can be `nil` IF a "sound" is specified for instrument definition (deriving name from the string)
+
+## definition
+
+WIP
+
+`table` of data (with `sound`), or `string` of sound file name (which can be used to derive name if name is `nil`)
+
+## playing_groups (OPTIONAL)
+
+`table` array of strings associated to a node group
+
+`lowprty` index can be specified in the `playing_groups` table array (as it will be grabbed independently out) to shorthand needing to write `choice_priority` in `definition`
+
+Recommended to use API function `tph_notenode.create_instruments_group_table`, especially for custom depends handling which can have nil values (if for example, you use a boolean condition to determine whether or not to have a group specified for a certain instrument for a certain game/mod)
+
+## noteC (OPTIONAL)
+
+Used for determining what the middle note on the base octave should be
+
+`table` dictionary containing two interpretable values;
+
+- `hertz`, a `number`, is used for calculating pitches for notes after middle C in the scale, and other octave scales in the instrument. Primarily for reading purposes, and does not affect how pitches are generated. Defaults to `261.6256`
+
+- `octave`, an `integer`, is used purely for reading purposes and does not pose any unique functionality. Defaults to `1`
+
+
+
+# Instrument Groups Table (`playing_groups`)
+
+Info info talk talk WIP
+
+
+
 # `tph_notenode_` functionality
 
 There are two ways to force a certain block to play an instrument - a softer one that respects `lowprty` - and one that does NOT respect it - and will play the select instrument regardless of node groups.
@@ -59,6 +99,8 @@ Current games within `depends` that will cause `depends.NLC` to be true:
 
 Any values under `tph_notenode` meant NOT to be written to - and will cause error if written to. In order to properly iterate over said tables, you will require the mod `metatable_metamethods` (https://content.luanti.org/packages/TPH/metatable_metamethods/)
 
+See `Compatibilities` for `tph_notenode.depends`
+
 ## notesdata (`tph_notenode.notesdata`)
 
 Table of two different tables utilized for determining the colour and "name" of a note. Each table indexed under the format of a 12-tone scale (numbered 1 to 12)
@@ -100,3 +142,19 @@ A hexadecimal used for colouring the symbol that appears when a note is modified
 
 
 # API functions
+
+Callable functions for handling general effects and mechanics
+
+See `Instrument Registration` for `tph_notenode.register_instrument`
+
+## Create Instruments Group Table (`tph_notenode.create_instruments_group_table`)
+
+Creates a table that can be utilized for `tph_notenode.register_instrument`'s `playing_groups` parameter and optionally `choice_priority`. See `Instrument Group Table (playing_groups` for more information on what to expect
+
+Permits tuple argument of strings for easily creating a risk-free `playing_groups` table. Ignores all non-strings unless first provided parameter is `number`. Can be used to skip over accidentally creating a table with `false` in arguments that require a depends to be existent, as per the last arugment in the below expected usage
+
+Expected usage: `tph_notenode.create_instruments_group_table("node_group1", "node_group2", depends.somegame and "node_group_special")`
+
+`choice_priority` alternative: if first passed argument is a `number` (expected `integer` above 0), this will be added to the returned table as index `lowprty` - which will be read and utilized by instrument registration
+
+Expected usage: `tph_notenode.create_instruments_group_table(5, "agroup", "agroup2")`
