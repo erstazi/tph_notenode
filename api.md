@@ -158,3 +158,61 @@ Expected usage: `tph_notenode.create_instruments_group_table("node_group1", "nod
 `choice_priority` alternative: if first passed argument is a `number` (expected `integer` above 0), this will be added to the returned table as index `lowprty` - which will be read and utilized by instrument registration
 
 Expected usage: `tph_notenode.create_instruments_group_table(5, "agroup", "agroup2")`
+
+## Get Instrument (Raw) (`tph_notenode.raw_get_instrument`)
+
+`tph_notenode.raw_get_instrument(pos, node, nodedefinition)`
+
+EXPECTED TO BE THE NODE BELOW THE NOTENODE
+
+As long as one of the parameters exist, it will return the detected instrument. If no `node` or `nodedefinition`, can derive from `pos`. If no `nodedefinition` or `pos`, can derive from `node`, if no `pos` or `node`, will utilize provided `nodedefinition`
+
+Returns instrument definition or nil if couldn't find instrument
+
+## Get Instrument (`tph_notenode.get_instrument`)
+
+`tph_notenode.get_instrument(pos, node, nodedefinition)`
+
+EXPECTED TO BE THE NODE BELOW THE NOTENODE
+
+Same functionality as `tph_notenode.raw_get_instrument` except that it will return the definition of the `default_instrument` if could not find an instrument
+
+## Produce Note Particle (`tph_notenode.produce_note_particle`)
+
+`tph_notenode.produce_note_particle(pos, note, instrument, y, colour, plusminus)`
+
+Spawns a floating note particle at pos
+
+If `note` not specified, note will spawn as uncoloured (white) UNLESS `colour` IS SPECIFIED. `note` MUST be a table that is derived from `tph_notenode.convert_param2_to_note` or an instrument's notes table. `note` table must have a `num` that is from 1 to 12
+
+If `instrument` not specified, octave darkening or lightening won't be applied to the note particle - ALSO requires `note` to be specified. `instrument` is an instrument definition table with an adequately formed `basenotes` table. If both are specified, applies darkening to particle if note octave is lower than instrument's base octave, applies lightening to particle if note octave is higher, otherwise applies no effect
+
+If `y` not specified, spawns Y+0.75 (3 quarters up) from pos. `y` is otherwise expected to be a number
+
+If `colour` is specified, overrides colouring from `note` or default white colouring. EXPECTED TO BE A `HEXADECIMAL COLORSTRING`
+
+If `plusminus` is specified, must be boolean true or false. Shows a coloured `+` (if `true`) or `-` (if `false`) symbol next to the note particle
+
+## Param2 --> Note (`tph_notenode.convert_param2_to_note`)
+
+`tph_notenode.convert_param2_to_note(param2, instrument)`
+
+The inverse of `tph_notenode.convert_note_to_param2`! Handles converting a node's param2 to a valid note table
+
+`param2` should be what's returned from `core.get_node(pos)`, a number between 0 and 255. Gets clamped if under or above said limit
+
+`instrument` should be an instrument definition table or the name of a valid instrument
+
+Returns `note` table correlating to the provided `param2`. Returns "high" or "low" as 2nd parameter if param2 had to be clamped
+
+## Note --> Param2 (`tph_notenode.convert_note_to_param2`)
+
+`tph_notenode.convert_note_to_param2(note, instrument)`
+
+The inverse of `tph_notenode.convert_param2_to_note`! Handles converting a valid note table into a node param2
+
+`note` should be a valid note table that would be in `instrument`
+
+`instrument` should be an instrument definition table or the name of a valid instrument
+
+Returns a number from 0 to 255 correlated to the note table and instrument definition's information

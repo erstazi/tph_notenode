@@ -521,10 +521,10 @@ local default_instrument = "donk"
 --- @param node? table not required if position or ndef is provided, core.get_node result of pos
 --- @param ndef? table not required if position or node is provided, registered node table of node to grab instrument from
 local function get_instrument_raw(pos, node, ndef)
-    if not ndef then
+    if not (ndef or node) then
         node = node or core.get_node(pos)
     end
-    ndef = ndef or core.registered_items[node.name]
+    ndef = ndef or node and core.registered_items[node.name]
     if not ndef then return end
     -- will play any instrument specified and if said instrument exists
     do
@@ -793,6 +793,8 @@ local function get_pointed_thing_node_face(pointed_thing)
     end
     return face
 end
+-- so you can use this too for auxiliary purposes!!! :3
+tph_notenode.get_pointed_thing_node_face = get_pointed_thing_node_face
 
 
 --- get whether or not provided "thing" value translates to a treble or clef, with options for "bottom" and "top"
