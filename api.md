@@ -43,12 +43,6 @@ Used for determining what the middle note on the base octave should be
 
 
 
-# Instrument Groups Table (`playing_groups`)
-
-Info info talk talk WIP
-
-
-
 # `tph_notenode_` functionality
 
 There are two ways to force a certain block to play an instrument - a softer one that respects `lowprty` - and one that does NOT respect it - and will play the select instrument regardless of node groups.
@@ -149,7 +143,7 @@ See `Instrument Registration` for `tph_notenode.register_instrument`
 
 ## Create Instruments Group Table (`tph_notenode.create_instruments_group_table`)
 
-Creates a table that can be utilized for `tph_notenode.register_instrument`'s `playing_groups` parameter and optionally `choice_priority`. See `Instrument Group Table (playing_groups` for more information on what to expect
+Creates a table that can be utilized for `tph_notenode.register_instrument`'s `playing_groups` parameter and optionally `choice_priority`. See Instrument Registration's `playing_groups` for more information on what to expect
 
 Permits tuple argument of strings for easily creating a risk-free `playing_groups` table. Ignores all non-strings unless first provided parameter is `number`. Can be used to skip over accidentally creating a table with `false` in arguments that require a depends to be existent, as per the last arugment in the below expected usage
 
@@ -216,3 +210,89 @@ The inverse of `tph_notenode.convert_param2_to_note`! Handles converting a valid
 `instrument` should be an instrument definition table or the name of a valid instrument
 
 Returns a number from 0 to 255 correlated to the note table and instrument definition's information
+
+## Coordinate of Node Face Correlated to Pointed Thing (`tph_notenode.get_pointed_thing_node_face`)
+
+`tph_notenode.get_pointed_thing_node_face(pointed_thing)`
+
+You SHOULDN'T need to use this function, but the option is provided. Utilized by `tph_notenode.get_staff_from_pointed_thing`
+
+Derives which facing side was clicked upon by the subject with a valid provided `pointed_thing` table. Representing the select face with a 3D coord (XYZ) with minus or plus symbols (-+) preceeding.
+
+`pointed_thing` should be a valid `pointed_thing` returned by node click callbacks or the results from a raycast
+
+Returns a string correlating to the coordinate and which integer thingie. What can be returned: "-X", "+X", "-Y", "+Y", "-Z", "+Z"
+
+## (Music) Staff from Pointed Thing (`tph_notenode.get_staff_from_pointed_thing`)
+
+`tph_notenode.get_pointed_thing_node_face(pointed_thing, staffonly)`
+
+Utilizes `tph_notenode.get_pointed_thing_node_face` to determine the staff clef. Used for setting notenode's pitch correlated to the suspected
+
+`pointed_thing` should be a valid `pointed_thing` returned by node click callbacks or the results from a raycast
+
+`staffonly` is optional - however if specified, should be boolean. If true, returns only if a valid detected staff - otherwise nil
+
+Returns a string correlating to the clicked face of a node. Returns "bass" or "treble", and if `staffonly` is not specified, then will return "top" or "bottom" as well
+
+## Functions Intended for Node Callbacks;; ==============================================
+
+Premade functions for easily setting up node callbacks
+
+## Node Get Instrument (`tph_notenode.notenode_get_instrument`)
+
+`tph_notenode.notenode_get_instrument(pos, node, bottompos, bottomnode)`
+
+Utilizes a localized version of `tph_notenode.get_instrument` to get the instrument underneath a notenode
+
+`pos` is the `Vector` position of the notenode in question
+
+`node` is the node table `core.get_node(pos)` of the notenode in question (not currently used, kept for parameters sakes, unlikely to be used in the future)
+
+`bottompos` is optional. Should be the position underneath the notenode, will calculate from `pos` if not specified
+
+`bottomnode` is optional. Should be the node table `core.get_node(bottompos)` of the node underneath the notenode. Will be grabbed from `bottompos` if not specified
+
+Returns the same return as `tph_notenode.get_instrument` - the definition table of an instrument
+
+## Node Play Instrument (`tph_notenode.notenode_play_instrument`)
+
+`tph_notenode.notenode_play_instrument(pos, node, instrument, note, player, plusminus)`
+
+Plays sound of instrument and produces a note particle at provided notenode. Requires notenode's definition to have the `notenode_get_instrument` callback
+
+`pos` is the `Vector` position of the notenode in question
+
+`node` is optional. If provided, must be a note table `core.get_node(pos)` result grabbed from position of notenode
+
+`instrument` is optional. If provided, must be a valid `instrument` definition from `tph_notenode.registered_instruments`. Otherwise is grabbed from node underneath notenode's position
+
+`note` is optional. If provided, must be a valid `note` table from an `instrument` definition. Otherwise is grabbed from the notenode's param2 and gathered instrument definition
+
+`player` is optional and intended purely for Exile. Good to provide it anyways if you can. If specified, should be the player object of the player interacting
+
+`plusminus` is optional. If provided, must be boolean - `true` for `+`, `false` for `-`. Utilized in the function's usage of a localized variant of `tph_notenode.produce_note_particle`
+
+## Handler Functions;; ==============================================
+
+Functions for handling running a node definition's callbacks or running default functions
+
+## Handle Node Get Instrument (`tph_notenode.handle_notenode_get_instrument`)
+
+`tph_notenode.handle_notenode_get_instrument(ndef, pos, node, bottompos, bottomnode)`
+
+Handler variant for `tph_notenode.notenode_get_instrument`, runs node's callback variant or `tph_notenode.notenode_get_instrument`
+
+`ndef` is optional. If provided, must be the `core.registered_nodes` definition of node
+
+See `tph_notenode.notenode_get_instrument` for other parameters
+
+## Handle Node Play Instrument (`tph_notenode.handle_notenode_play_instrument`)
+
+`tph_notenode.handle_notenode_play_instrument(pos, node, instrument, note, player, plusminus)`
+
+Handler variant for `tph_notenode.notenode_play_instrument`, runs node's callback variant or `tph_notenode.notenode_play_instrument`
+
+`ndef` is optional. If provided, must be the `core.registered_nodes` definition of node
+
+See `tph_notenode.notenode_play_instrument` for other parameters
