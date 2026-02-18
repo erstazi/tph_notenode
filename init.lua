@@ -267,7 +267,7 @@ local function register_instrument(name, def, groups, noteC)
     -- for lower, will be subtracted from middle octave, for higher, will be added to middle octave
     -- use math.abs and math.ceil to prevent negative numbers and only permit integers
     -- use math.min to clamp below a difference of 10
-    local octrange = def.octrange or {}
+    local octrange = def.octrange or def.octave_range or {}
     -- lower octave (default: -2) -- ensure you use a positive number when defining it though!
     octrange[1] = type(octrange[1]) == "number" and math.min(math.abs(math.ceil(octrange[1])), 10) or 2
     -- higher octave (default: +2)
@@ -348,6 +348,8 @@ local function register_instrument(name, def, groups, noteC)
     -- low priority mechanics
     def.choice_priority = type(def.choice_priority) == "number" and def.choice_priority > 0 and def.choice_priority or
       nil
+    -- clear some stuff
+    def.octrange = nil
     -- finalizing
     def.notes = notes
     def.name = name

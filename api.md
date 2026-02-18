@@ -17,11 +17,29 @@ If you're having issues with instruments conflicting - e.g. you set up different
 
 `string` or can be `nil` IF a "sound" is specified for instrument definition (deriving name from the string)
 
+example: `tph_notenode.register_instrument(nil, {sound="myinstrument_instrumentsound"})
+
+- will create an instrument called `instrumentsound` as it removes the `mod_origin` from the sound for the name
+
 ## definition
 
-WIP
-
 `table` of data (with `sound`), or `string` of sound file name (which can be used to derive name if name is `nil`)
+
+example: `tph_notenode.register_instrument("myinstrument", "myinstrument_instrumentsound")`
+
+`sound` must be a string correlating to the name of a sound, otherwise will crash
+
+`gain` handles the volume of the sound played by the instrument. Can be specified as `vol` as well (however should be indexed as `gain` after registration)
+
+`choice_priority` handles the priority of the instrument compared to other instruments. The higher the number, the less priority the instrument will have. Must be a minimum of 0 . If not listed, instrument will be the first prioritized (which can cause interesting issues if more than one instrument correlate to the groups in a node)
+
+`octave_range` handles the range of octaves, used for generating a specific amount of notes. Can be specified as `octrange` as well (should be indexed as `octave_range` after registration). `octave_range` should be an array of two integers that represent minimum and maximum, for example, `{0, 4}` or `{-2,3}`. It is not necessary to specify a negative integer for minimum - as it will be automatically set as negative. Integers cannot be greater than 10 respectively. If a generated note's `val` (note.hertz / noteC.hertz) is greater than 10 , it will cease generating notes for higher octaves - so you'll unlikely have any octave higher than 2 points higher than octave 1 (e.g. 3 ).
+
+- the following will be erased or overriden;
+- `vol` to `gain`
+- `basenotes`, `notes`, `name`, `mod_origin`, `octrange`
+
+Otherwise, you can customize WHATEVER values can be in it! Though it won't affect in-game functionality unless you add functionality
 
 ## playing_groups (OPTIONAL)
 
@@ -39,7 +57,7 @@ Used for determining what the middle note on the base octave should be
 
 - `hertz`, a `number`, is used for calculating pitches for notes after middle C in the scale, and other octave scales in the instrument. Primarily for reading purposes, and does not affect how pitches are generated. Defaults to `261.6256`
 
-- `octave`, an `integer`, is used purely for reading purposes and does not pose any unique functionality. Defaults to `1`
+- `octave`, an `integer`, is used purely for reading purposes and does not pose any unique functionality. Defaults to `1`. Not recommended to modify unless your `octave_range` specified in definition is strange
 
 
 
