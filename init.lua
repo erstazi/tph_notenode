@@ -938,6 +938,7 @@ local nbdef = { -- notenode definition
     on_construct = function(pos)
         local node = core.get_node(pos)
         local ndef = core.registered_nodes[node.name]
+        if not ndef.notenode_get_instrument then return end -- can't do dis
         -- get instrument to adequately get appropriate param2
         local instrument = ndef.notenode_get_instrument(pos, node)
         node.param2 = convert_note(instrument.basenotes[1], instrument)
@@ -948,9 +949,13 @@ local nbdef = { -- notenode definition
     notenode_play_instrument = notenode_play_instrument,
     on_punch = function(pos, node, puncher, pointed_thing)
         local ndef = core.registered_nodes[node.name]
+        if not ndef.notenode_play_instrument then return end -- can't do dis
         ndef.notenode_play_instrument(pos, node)
     end,
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+        -- get node definition
+        local ndef = core.registered_nodes[node.name]
+        if not ndef.notenode_get_instrument then return end -- no function for getting own instrument
         -- protection check
         if core.is_player(clicker) then
             -- protected, return
@@ -959,8 +964,6 @@ local nbdef = { -- notenode definition
         -- treble or bass
         local staff = get_staff_from_pointed_thing(pointed_thing, true)
         if not staff then return end
-        -- get node definition
-        local ndef = core.registered_nodes[node.name]
         -- treble for higher, bass for lower
         local addparam2 = staff == "treble" and 1 or staff == "bass" and -1
         node.param2 = node.param2 + addparam2
@@ -973,8 +976,11 @@ local nbdef = { -- notenode definition
         -- figure out if we should show a symbol or not - if so, which symbol
         -- uses addparam2 to figure it out, 1 is true, any other number will be false, and if not number, nil
         local doplusminus = addparam2 == 1 and true or type(addparam2) ~= "number" and nil
-        -- play
-        ndef.notenode_play_instrument(pos, node, instrument, note, clicker, doplusminus)
+        -- play (only if have callback to do so)
+        if ndef.notenode_play_instrument then
+            ndef.notenode_play_instrument(pos, node, instrument, note, clicker, doplusminus)
+        end
+        -- modify node
         core.swap_node(pos, node)
     end,
     -- save param2 if it's different from middle C
@@ -987,6 +993,7 @@ local nbdef = { -- notenode definition
         -- check if we should save this even (if param2 does NOT equal middle C)
         -- get instrument to adequately get appropriate param2
         local ndef = core.registered_nodes[oldnode.name]
+        if not ndef.notenode_get_instrument then return end -- actually can't do anything here
         local instrument = ndef.notenode_get_instrument(pos, oldnode)
         -- calculate baseparam2 from middle C
         local baseparam2 = convert_note(instrument.basenotes[1], instrument)
@@ -1232,6 +1239,7 @@ local function noteblock_craft()
         end
         -- otherwise play hopeful music
         local ndef = core.registered_nodes[node.name]
+        if not ndef.notenode_play_instrument then return end -- only if can play
         ndef.notenode_play_instrument(pos, node)
     end
 end
