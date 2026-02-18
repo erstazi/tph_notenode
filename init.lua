@@ -910,9 +910,8 @@ tph_notenode.notenode_get_instrument = notenode_get_instrument
 local function notenode_play_instrument(pos, node, instrument, note, player, plusminus)
     node = node or core.get_node(pos)
     local ndef = core.registered_nodes[node.name]
-    if not ndef.notenode_get_instrument then return end -- no instrument function huuuh
     -- get instrument + note
-    instrument = instrument or ndef.notenode_get_instrument(pos, node)
+    instrument = instrument or tph_notenode.handle_notenode_get_instrument(ndef, pos, node)
     note = note or get_note(node.param2, instrument)
     if not note then return end
     -- play and particle
@@ -925,6 +924,48 @@ end
 -- expects to be used in node definition
 tph_notenode.notenode_play_instrument = notenode_play_instrument
 
+----------
+-- handler functions, for either running node definition's function or the default
+
+--- handles running notenode_get_instrument functionality without having to do it yourself
+--- @param ndef? used for running node definition's function, derived from pos or node parameter if nil
+--- @param pos position of the notenode
+--- @param node? core.get_node result of pos, derived from pos if nil
+--- @param bpos? position below pos, derived from pos if nil
+--- @param bnode? core.get_node result of bpos, derived from bpos if nil
+tph_notenode.handle_notenode_get_instrument = function(ndef, pos, node, bpos, bnode)
+    -- ensure basics
+    node = node or core.get_node(pos)
+    bpos = bpos or vector.new(pos.x, pos.y - 1, pos.z)
+    bnode = bnode or core.get_node(bpos)
+    -- ensure node definition
+    ndef = ndef or node and core.registered_nodes[node.name]
+    -- now for the good stuff
+    local func = ndef and ndef.notenode_get_instrument or notenode_get_instrument
+    return func(pos, node, bpos, bnode)
+end
+
+--- handles running notenode_play_instrument functionality without having to do it yourself
+--- @param ndef? used for running node definition's function, derived from pos or node parameter if nil
+--- @param pos position of the notenode
+--- @param node? core.get_node result of pos, derived from pos if nil
+--- @param instrument? see tph_notenode.notenode_play_instrument
+--- @param note? see tph_notenode.notenode_play_instrument
+--- @param player? see tph_notenode.notenode_play_instrument
+--- @param plusminus? see tph_notenode.notenode_play_instrument
+tph_notenode.handle_notenode_play_instrument = function(ndef, pos, node, instrument, note, player, plusminus)
+    -- ensure node
+    node = node or core.get_node(pos)
+    ndef = ndef or core.registered_nodes[node.name]
+    -- now for the good stuff
+    local func = ndef and ndef.notenode_play_instrument or notenode_play_instrument
+    return func(pos, node, instrument, note, player, plusminus)
+end
+
+
+
+----------
+-- node definitions
 
 local nbdef = { -- notenode definition
     description = S("Notenode"),
@@ -938,9 +979,8 @@ local nbdef = { -- notenode definition
     on_construct = function(pos)
         local node = core.get_node(pos)
         local ndef = core.registered_nodes[node.name]
-        if not ndef.notenode_get_instrument then return end -- can't do dis
         -- get instrument to adequately get appropriate param2
-        local instrument = ndef.notenode_get_instrument(pos, node)
+        local instrument = tph_notenode.handle_notenode_get_instrument(ndef, pos, node)
         node.param2 = convert_note(instrument.basenotes[1], instrument)
         core.swap_node(pos, node)
     end,
@@ -948,14 +988,9 @@ local nbdef = { -- notenode definition
     notenode_get_instrument = notenode_get_instrument,
     notenode_play_instrument = notenode_play_instrument,
     on_punch = function(pos, node, puncher, pointed_thing)
-        local ndef = core.registered_nodes[node.name]
-        if not ndef.notenode_play_instrument then return end -- can't do dis
-        ndef.notenode_play_instrument(pos, node)
+        tph_notenode.handle_notenode_play_instrument(nil, pos, node)
     end,
     on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
-        -- get node definition
-        local ndef = core.registered_nodes[node.name]
-        if not ndef.notenode_get_instrument then return end -- no function for getting own instrument
         -- protection check
         if core.is_player(clicker) then
             -- protected, return
@@ -967,8 +1002,10 @@ local nbdef = { -- notenode definition
         -- treble for higher, bass for lower
         local addparam2 = staff == "treble" and 1 or staff == "bass" and -1
         node.param2 = node.param2 + addparam2
+        -- get node definition
+        local ndef = core.registered_nodes[node.name]
         -- get instrument
-        local instrument = ndef.notenode_get_instrument(pos, node)
+        local instrument = tph_notenode.handle_notenode_get_instrument(ndef, pos, node)
         -- get note for playing
         local note = get_note(node.param2, instrument)
         -- update param2 and swap the node
@@ -976,10 +1013,8 @@ local nbdef = { -- notenode definition
         -- figure out if we should show a symbol or not - if so, which symbol
         -- uses addparam2 to figure it out, 1 is true, any other number will be false, and if not number, nil
         local doplusminus = addparam2 == 1 and true or type(addparam2) ~= "number" and nil
-        -- play (only if have callback to do so)
-        if ndef.notenode_play_instrument then
-            ndef.notenode_play_instrument(pos, node, instrument, note, clicker, doplusminus)
-        end
+        -- play
+        tph_notenode.handle_notenode_play_instrument(ndef, pos, node, instrument, note, clicker, doplusminus)
         -- modify node
         core.swap_node(pos, node)
     end,
@@ -993,8 +1028,7 @@ local nbdef = { -- notenode definition
         -- check if we should save this even (if param2 does NOT equal middle C)
         -- get instrument to adequately get appropriate param2
         local ndef = core.registered_nodes[oldnode.name]
-        if not ndef.notenode_get_instrument then return end -- actually can't do anything here
-        local instrument = ndef.notenode_get_instrument(pos, oldnode)
+        local instrument = tph_notenode.handle_notenode_get_instrument(ndef, pos, oldnode)
         -- calculate baseparam2 from middle C
         local baseparam2 = convert_note(instrument.basenotes[1], instrument)
         -- don't save this, equals middle C's param2 conversion
@@ -1103,9 +1137,8 @@ if depends.exile then
         if active[poshash] then return end -- currently playing!
         node = node or core.get_node(pos)
         ndef = ndef or core.registered_nodes[node.name]
-        if core.get_item_group(node.name, "tph_notenode") < 1 then return end -- NOT a notenode!
-        if not ndef.notenode_play_instrument then return end -- no function for playing
-        ndef.notenode_play_instrument(pos, node)
+        if core.get_item_group(node.name, "notenode") < 1 then return end -- NOT a notenode!
+        tph_notenode.handle_notenode_play_instrument(ndef, pos, node)
         if not ndef.notenode_on_alight then return end -- no function for lighting other nodes
         -- add to active
         active[poshash] = true
@@ -1140,14 +1173,14 @@ if depends.exile then
     -- new `on_punch` behaviour
     nbdef.on_punch = function(pos, node, puncher, pointed_thing)
         local ndef = core.registered_nodes[node.name]
-        -- set nodes alight if holding shift
-        if core.is_player(puncher) then
+        -- set nodes alight if holding shift and if function exists
+        if core.is_player(puncher) and ndef.notenode_on_alight then
             if puncher:get_player_control().sneak then
                 return ndef.notenode_on_alight(pos, node, ndef)
             end
         end
         -- otherwise do as normal
-        nbdef.notenode_play_instrument(pos, node)
+        tph_notenode.handle_notenode_play_instrument(ndef, pos, node)
     end
 end
 
@@ -1176,7 +1209,7 @@ local devicedef = {
         node = node or core.get_node(pos)
         local ndef = core.registered_nodes[node.name]
         -- get instrument + note
-        local instrument = notenode_get_instrument(pos)
+        local instrument = tph_notenode.handle_notenode_get_instrument(ndef, pos, node)
         local instnotes = instrument.notes
         -- not properly built into a notenode, play notes at random
         local note = instnotes[math.random(1, #instnotes)]
@@ -1237,10 +1270,8 @@ local function noteblock_craft()
                 return core.set_node(pos, {name = noteblock.name, param2 = (noteblock.place_param2 or 0)})
             end
         end
-        -- otherwise play hopeful music
-        local ndef = core.registered_nodes[node.name]
-        if not ndef.notenode_play_instrument then return end -- only if can play
-        ndef.notenode_play_instrument(pos, node)
+        -- otherwise play some music
+        tph_notenode.handle_notenode_play_instrument(nil, pos, node)
     end
 end
 
@@ -1309,10 +1340,7 @@ if depends.mineclonia then
         end,
         update = function(pos, node)
             if mcl_redstone.get_power(pos) == 0 then return end -- no power
-            local ndef = node and core.registered_nodes[node.name]
-            if ndef and ndef.notenode_play_instrument then
-                ndef.notenode_play_instrument(pos, node)
-            end
+            tph_notenode.handle_notenode_play_instrument(nil, pos, node)
         end
     }
 end
@@ -1349,7 +1377,7 @@ if depends.nodecore then
         end
         -- play and add our time to activated table
         activated[posid] = ctime
-        nbdef.notenode_play_instrument(pos, node)
+        tph_notenode.handle_notenode_play_instrument(nil, pos, node)
     end
     -- digging properly
     nbdef.groups.snappy = 1
@@ -1379,7 +1407,7 @@ if depends.aom then
         if offnodes[posid] then return end
         offnodes[posid] = true
         -- now to actually play
-        nbdef.notenode_play_instrument(target)
+        tph_notenode.handle_notenode_play_instrument(nil, target)
         aom_wire.activate(target, player) -- activate any others
         core.after(0.2, function() offnodes[posid] = nil end)
     end
@@ -1398,10 +1426,7 @@ if depends.mesecons then
         effector = {
             rules = mesecon.rules.alldirs,
             action_on = function(pos, node)
-                local ndef = node and core.registered_nodes[node.name]
-                if ndef and ndef.notenode_play_instrument then
-                    ndef.notenode_play_instrument(pos, node)
-                end
+                tph_notenode.handle_notenode_play_instrument(nil, pos, node)
             end
         }
     }
