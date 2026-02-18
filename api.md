@@ -296,3 +296,43 @@ Handler variant for `tph_notenode.notenode_play_instrument`, runs node's callbac
 `ndef` is optional. If provided, must be the `core.registered_nodes` definition of node
 
 See `tph_notenode.notenode_play_instrument` for other parameters
+
+
+
+# API node callbacks
+
+Callback options that can be utilized to customize how the `notenode` or your own registered node using `notenode` functions, handle certain functionality
+
+## Callback Get Instrument (`ndef.notenode_get_instrument`)
+
+`ndef.notenode_get_instrument(pos, node, bpos, bnode)`
+
+See `tph_notenode.notenode_get_instrument` for an explanation of parameters
+
+SHOULD expect `node`, `bpos`, and `bnode` to be nil, and should make cases for grabbing them from `pos`
+
+Recommended to include or otherwise utilize `tph_notenode.notenode_get_instrument`
+
+## Callback Play Instrument (`ndef.notenode_play_instrument`)
+
+`ndef.notenode_play_instrument(pos, node, instrument, note, player, plusminus)`
+
+See `tph_notenode.notenode_play_instrument` for an explanation of parameters
+
+SHOULD expect all parameters except for `pos` to be nil, and should make cases for grabbing them from `pos`
+
+Recommended to include or otherwise utilize `tph_notenode.notenode_get_instrument`
+
+## (EXILE ONLY) Callback On Alight
+
+`ndef.notenode_on_alight(pos, node, ndef)`
+
+`pos` is the `Vector3` position of the notenode in question
+
+`node` may not always be provided. You should derive from `pos` using `core.get_node(pos)`
+
+`ndef` may not always be provided. You should derive from `node` using `core.registered_nodes[node.name]`
+
+SHOULD expect all parameters except for `pos` to be nil, and should make cases for grabbing them from `pos`
+
+No builtin mod functions currently exist for handling `ndef.notenode_on_alight`. It is only ran by the customized `on_punch` for Exile
