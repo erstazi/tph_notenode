@@ -223,17 +223,17 @@ Derives which facing side was clicked upon by the subject with a valid provided 
 
 Returns a string correlating to the coordinate and which integer thingie. What can be returned: "-X", "+X", "-Y", "+Y", "-Z", "+Z"
 
-## (Music) Staff from Pointed Thing (`tph_notenode.get_staff_from_pointed_thing`)
+## (Music) Clef from Pointed Thing (`tph_notenode.get_clef_from_pointed_thing`)
 
-`tph_notenode.get_pointed_thing_node_face(pointed_thing, staffonly)`
+`tph_notenode.get_pointed_thing_node_face(pointed_thing, clefonly)`
 
 Utilizes `tph_notenode.get_pointed_thing_node_face` to determine the staff clef. Used for setting notenode's pitch correlated to the suspected
 
 `pointed_thing` should be a valid `pointed_thing` returned by node click callbacks or the results from a raycast
 
-`staffonly` is optional - however if specified, should be boolean. If true, returns only if a valid detected staff - otherwise nil
+`clefonly` is optional - however if specified, should be boolean. If true, returns only if a valid detected clef - otherwise nil
 
-Returns a string correlating to the clicked face of a node. Returns "bass" or "treble", and if `staffonly` is not specified, then will return "top" or "bottom" as well
+Returns a string correlating to the clicked face of a node. Returns "bass" or "treble", and if `clefonly` is not specified, then will return "top" or "bottom" as well
 
 ## Functions Intended for Node Callbacks;; ==============================================
 

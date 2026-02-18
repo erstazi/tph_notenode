@@ -499,10 +499,6 @@ if depends.ncbells then
       })
 end
 
-for e,v in pairs(tph_notenode.registered_instruments) do
-    core.log(e)
-end
-
 -- add to global
 tph_notenode.register_instrument = register_instrument
 
@@ -801,10 +797,10 @@ end
 tph_notenode.get_pointed_thing_node_face = get_pointed_thing_node_face
 
 
---- get whether or not provided "thing" value translates to a treble or clef, with options for "bottom" and "top"
+--- get whether or not provided "thing" value translates to a treble or bass clef, with options for "bottom" and "top"
 --- @param thing table expected pointed_thing table, but can be string result from get_pointed_thing_node_face
---- @param staffonly? boolean if true, do not return "bottom" or "top", instead returning nil
-local function get_staff_from_pointed_thing(thing, staffonly)
+--- @param clefonly? boolean if true, do not return "bottom" or "top", instead returning nil
+local function get_clef_from_pointed_thing(thing, clefonly)
     -- permit result from above function (string)
     if type(thing) ~= "string" then
         -- don't wanna do crashing errors in this household
@@ -815,15 +811,15 @@ local function get_staff_from_pointed_thing(thing, staffonly)
     end
     -- couldn't get a face
     if type(thing) ~= "string" then return end
-    -- figure out staff now! and return!
+    -- figure out clef now! and return!
     return (thing == "-x" or thing == "-z") and "treble" or
       (thing == "+x" or thing == "+z") and "bass" or
-      -- return top or bottom if staffonly isn't specified
-      not staffonly and (thing == "-y" and "bottom" or thing == "+y" and "top") or
+      -- return top or bottom if clefonly isn't specified
+      not clefonly and (thing == "-y" and "bottom" or thing == "+y" and "top") or
       nil
 end
 -- so that you can check too!
-tph_notenode.get_staff_from_pointed_thing = get_staff_from_pointed_thing
+tph_notenode.get_clef_from_pointed_thing = get_clef_from_pointed_thing
 
 --------------------------------
 -- CREATING THE NOTENODE NODE
@@ -1001,10 +997,10 @@ local nbdef = { -- notenode definition
             if core.is_protected(pos, clicker:get_player_name()) then return end
         end
         -- treble or bass
-        local staff = get_staff_from_pointed_thing(pointed_thing, true)
-        if not staff then return end
+        local clef = get_clef_from_pointed_thing(pointed_thing, true)
+        if not clef then return end
         -- treble for higher, bass for lower
-        local addparam2 = staff == "treble" and 1 or staff == "bass" and -1
+        local addparam2 = clef == "treble" and 1 or clef == "bass" and -1
         node.param2 = node.param2 + addparam2
         -- get node definition
         local ndef = core.registered_nodes[node.name]
