@@ -203,7 +203,7 @@ lpoem = function()
 end
 
 -- setting a metatable prevents iteration
-tph_notenode.registered_instruments = {}
+tph_notenode.registered_instruments = create_unwritable(public_instruments)
 
 -- list of instruments to play for specific groups
 local playing_groups = {}
@@ -499,6 +499,10 @@ if depends.ncbells then
       })
 end
 
+for e,v in pairs(tph_notenode.registered_instruments) do
+    core.log(e)
+end
+
 -- add to global
 tph_notenode.register_instrument = register_instrument
 
@@ -529,7 +533,7 @@ local function get_instrument_raw(pos, node, ndef)
     -- will play any instrument specified and if said instrument exists
     do
         -- prioritized
-        local foundstrument = instruments[ndef.tph_notenode_instrument] -- found instrument
+        local foundstrument = tph_notenode.registered_instruments[ndef.tph_notenode_instrument] -- found instrument
         if foundstrument then
             return foundstrument
         end
@@ -543,7 +547,7 @@ local function get_instrument_raw(pos, node, ndef)
         local instrument = playing_groups[grpname] -- instrument name
         -- only set playing instrument if found successfully
         if instrument and grpnum > 0 then
-            instrument = instruments[instrument] -- get actual instrument definition
+            instrument = tph_notenode.registered_instruments[instrument] -- get actual instrument definition
             -- no chosen instrument yet
             if not cinstrument then
                 cinstrument = instrument
@@ -574,11 +578,11 @@ local function get_instrument(pos, node, ndef)
     local inst = get_instrument_raw(pos, node, ndef)
     if not inst then
         -- get default instrument
-        inst = instruments[default_instrument]
+        inst = tph_notenode.registered_instruments[default_instrument]
         -- add a new default instrument in case of failure
         if not inst then
             default_instrument = next(instruments)
-            inst = instruments[default_instrument]
+            inst = tph_notenode.registered_instruments[default_instrument]
         end
     end
     return inst
@@ -614,7 +618,7 @@ local function noteparticle(pos, note, instrument, y, colour, plusminus)
     colour = colour and csg("", "^[multiply:", colour) or nil
     -- check instrument (ONLY IF COLOUR EXISTS AND NOTE HAS OCTAVE)
     if colour and has_note and type(note.octave) == "number" then
-        instrument = type(instrument) == "string" and instruments[instrument] and instrument or instrument
+        instrument = type(instrument) == "string" and tph_notenode.registered_instruments[instrument] or instrument
         -- instrument must be a table with a `basenotes` table - of which must have a number octave
         instrument = type(instrument) == "table" and
           (type(instrument.basenotes) == "table" and type(instrument.basenotes[1]) == "table" and
@@ -676,7 +680,7 @@ local function get_note(param2, instrument)
         error("tph_notenode.convert_param2_to_note: provided param2 is NOT a number! "..type(param2))
     end
     -- instrument should be the instrument you get from `tph_notenode.registered_instruments`
-    instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
+    instrument = type(instrument) == "string" and tph_notenode.registered_instruments[instrument] or instrument
     -- errors
     if type(instrument) ~= "table" then
         error("tph_notenode.convert_param2_to_note: provided instrument (table/string name) does not exist! "..dump(instrument))
@@ -720,7 +724,7 @@ tph_notenode.convert_param2_to_note = get_note
 --- @param note table note table containing valid 'octave' and 'num'
 --- @param instrument table|string instrument name/table, table containing valid 'octave_range' and 'notes'
 local function convert_note(note, instrument)
-    instrument = type(instrument) == "string" and tph_notenote.registered_instruments[instrument] or instrument
+    instrument = type(instrument) == "string" and tph_notenode.registered_instruments[instrument] or instrument
     -- oops!
     if type(note) ~= "table" then
         error("tph_notenode.convert_note_to_param2: provided note is NOT table! "..type(note))
