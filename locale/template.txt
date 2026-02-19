@@ -5,6 +5,6 @@ TPH's Notenode=
 Provides musically charged nodes for playing music - unique instruments + options=
 # actual modstuff
 Notenode=
+Instrumental Device=
 # for handling notes in the name
 Notenode @1=
-Instrumental Device=
