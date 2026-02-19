@@ -36,8 +36,9 @@ example: `tph_notenode.register_instrument("myinstrument", "myinstrument_instrum
 `octave_range` handles the range of octaves, used for generating a specific amount of notes. Can be specified as `octrange` as well (should be indexed as `octave_range` after registration). `octave_range` should be an array of two integers that represent minimum and maximum, for example, `{0, 4}` or `{-2,3}`. It is not necessary to specify a negative integer for minimum - as it will be automatically set as negative. Integers cannot be greater than 10 respectively. If a generated note's `val` (note.hertz / noteC.hertz) is greater than 10 , it will cease generating notes for higher octaves - so you'll unlikely have any octave higher than 2 points higher than octave 1 (e.g. 3 ).
 
 - the following will be erased or overriden;
-- `vol` to `gain`
-- `basenotes`, `notes`, `name`, `mod_origin`, `octrange`
+- `vol` --> `gain`
+- `octrange` --> `octave_range`
+- `basenotes`, `notes`, `name`, `mod_origin`, `playing_groups`
 
 Otherwise, you can customize WHATEVER values can be in it! Though it won't affect in-game functionality unless you add functionality
 
@@ -55,9 +56,29 @@ Used for determining what the middle note on the base octave should be
 
 `table` dictionary containing two interpretable values;
 
-- `hertz`, a `number`, is used for calculating pitches for notes after middle C in the scale, and other octave scales in the instrument. Primarily for reading purposes, and does not affect how pitches are generated. Defaults to `261.6256`
+- `hertz`, a `number`, is used for calculating pitches for notes after middle C in the scale, and other octave scales in the instrument. Used as a point of reference for generating pitches for notes (generated hertz / noteC's hertz), otherwise is read-only. Defaults to `261.6256` if not specified
 
 - `octave`, an `integer`, is used purely for reading purposes and does not pose any unique functionality. Defaults to `1`. Not recommended to modify unless your `octave_range` specified in definition is strange
+
+Check "Note Table Data" for how this'll be generated
+
+
+
+# Note Table Data
+
+What instances will be in an instrument's `basenotes` and `notes`
+
+They will contain several values;
+
+`hertz` the (practically read-only) hertz number value of the pitch. Can be used to calculate playing pitch with `note.hertz/instrument.basenotes[1].hertz`. Similar to `noteC` in instrument registration
+
+`octave` the "octave" integer value of "the musical interval between one pitch and another with double or half its frequency, spanning eight diatonic notes". It is used for read-only purposes and the `tph_notenode.produce_note_particle`. Similar to `noteC` in instrument registration
+
+`num` integer value from 1 to 12 , correlating to the chromatic pitches (so including sharps/flats). Mostly for read-only purposes but is utilized by `tph_notenode.produce_note_particle` for colouring
+
+`name` is the string value correlating to `note.num`, the chromatic pitch ("C" to "B"), indexed from `tph_notenode.notesdata.names`
+
+`val`(ue) is a decimal-percentage number value calculated from `note.hertz / NoteC.hertz`. This is used for `core.sound_play` to play the correct pitch
 
 
 
@@ -275,7 +296,7 @@ Returns the same return as `tph_notenode.get_instrument` - the definition table 
 
 ## Node Play Instrument (`tph_notenode.notenode_play_instrument`)
 
-`tph_notenode.notenode_play_instrument(pos, node, instrument, note, player, plusminus)`
+`tph_notenode.notenode_play_instrument(pos, node, instrument, note, plusminus, player)`
 
 Plays sound of instrument and produces a note particle at provided notenode. Requires notenode's definition to have the `notenode_get_instrument` callback
 
@@ -287,9 +308,9 @@ Plays sound of instrument and produces a note particle at provided notenode. Req
 
 `note` is optional. If provided, must be a valid `note` table from an `instrument` definition. Otherwise is grabbed from the notenode's param2 and gathered instrument definition
 
-`player` is optional and intended purely for Exile. Good to provide it anyways if you can. If specified, should be the player object of the player interacting
-
 `plusminus` is optional. If provided, must be boolean - `true` for `+`, `false` for `-`. Utilized in the function's usage of a localized variant of `tph_notenode.produce_note_particle`
+
+`player` is optional and intended purely for Exile. Good to provide it anyways if you can. If specified, should be the player object of the player interacting
 
 ## Handler Functions;; ==============================================
 
