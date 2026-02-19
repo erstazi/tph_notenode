@@ -907,9 +907,9 @@ tph_notenode.notenode_get_instrument = notenode_get_instrument
 --- @param node? table core.get_node() result of pos, node table of notenode, can be grabbed from pos
 --- @param instrument? expects instrument table if provided, otherwise determines instrument from below node
 --- @param note? expects note table produced by convert_param2_to_note function, otherwise grabbed from node's param2
---- @param player? used exclusively in Exile
 --- @param plusminus? see tph_notenode.produce_note_particle for usage, if specified produces symbol with note
-local function notenode_play_instrument(pos, node, instrument, note, player, plusminus)
+--- @param player? used exclusively in Exile. The actual player responsible for playing the instrument
+local function notenode_play_instrument(pos, node, instrument, note, plusminus, player)
     node = node or core.get_node(pos)
     local ndef = core.registered_nodes[node.name]
     -- get instrument + note
@@ -953,15 +953,15 @@ end
 --- @param node? core.get_node result of pos, derived from pos if nil
 --- @param instrument? see tph_notenode.notenode_play_instrument
 --- @param note? see tph_notenode.notenode_play_instrument
---- @param player? see tph_notenode.notenode_play_instrument
 --- @param plusminus? see tph_notenode.notenode_play_instrument
-tph_notenode.handle_notenode_play_instrument = function(ndef, pos, node, instrument, note, player, plusminus)
+--- @param player? see tph_notenode.notenode_play_instrument
+tph_notenode.handle_notenode_play_instrument = function(ndef, pos, node, instrument, note, plusminus, player)
     -- ensure node
     node = node or core.get_node(pos)
     ndef = ndef or core.registered_nodes[node.name]
     -- now for the good stuff
     local func = ndef and ndef.notenode_play_instrument or notenode_play_instrument
-    return func(pos, node, instrument, note, player, plusminus)
+    return func(pos, node, instrument, note, plusminus, player)
 end
 
 
@@ -1016,7 +1016,7 @@ local nbdef = { -- notenode definition
         -- uses addparam2 to figure it out, 1 is true, any other number will be false, and if not number, nil
         local doplusminus = addparam2 == 1 and true or type(addparam2) ~= "number" and nil
         -- play
-        tph_notenode.handle_notenode_play_instrument(ndef, pos, node, instrument, note, clicker, doplusminus)
+        tph_notenode.handle_notenode_play_instrument(ndef, pos, node, instrument, note, doplusminus, clicker)
         -- modify node
         core.swap_node(pos, node)
     end,
