@@ -1,10 +1,10 @@
 # textdomain: tph_notenode
 
 # Mod name + desc
-TPH's Notenodes=TPHs Notenblock
-Provides musically charged nodes for playing music - unique instruments + options=Liefern Musikalische Blöcke ​​zum Musizieren - einzigartiger anders Musikinstrumente + Optionen
+TPH's Notenodes=TPHs Notenblöcke
+Provides musically charged nodes for playing music - unique instruments + options=Bietet musikalische Blöcke ​​zum Abspielen von Musik – einzigartige Instrumente u. Optionen
 # actual modstuff
 Notenode=Notenblock
-Instrumental Device=Musikinstrument Gerät
+Instrumental Device=Musikinstrumentenapparat
 # for handling notes in the name
 Notenode @1=Notenblock gestimmt auf @1
