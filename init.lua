@@ -964,7 +964,12 @@ tph_notenode.handle_notenode_play_instrument = function(ndef, pos, node, instrum
     return func(pos, node, instrument, note, plusminus, player)
 end
 
-
+local function update_notenode_infotext(pos, node, instrument)
+    local note = get_note(node.param2, instrument)
+    if note then
+        core.get_meta(pos):set_string("infotext", "Notenode: " .. note.name .. note.octave)
+    end
+end
 
 ----------
 -- node definitions
@@ -985,6 +990,7 @@ local nbdef = { -- notenode definition
         local instrument = tph_notenode.handle_notenode_get_instrument(ndef, pos, node)
         node.param2 = convert_note(instrument.basenotes[1], instrument)
         core.swap_node(pos, node)
+        update_notenode_infotext(pos, node, instrument)
     end,
     -- pos, node, below pos, below node
     notenode_get_instrument = notenode_get_instrument,
@@ -1012,6 +1018,8 @@ local nbdef = { -- notenode definition
         local note = get_note(node.param2, instrument)
         -- update param2 and swap the node
         node.param2 = convert_note(note, instrument)--note_octave_to_param2(instrument, note)
+
+        update_notenode_infotext(pos, node, instrument)
         -- figure out if we should show a symbol or not - if so, which symbol
         -- uses addparam2 to figure it out, 1 is true, any other number will be false, and if not number, nil
         local doplusminus = addparam2 == 1 and true or type(addparam2) ~= "number" and nil
@@ -1068,6 +1076,8 @@ local nbdef = { -- notenode definition
         -- subtracted as explained above
         node.param2 = param2-1
         core.swap_node(pos, node)
+        local instrument = tph_notenode.handle_notenode_get_instrument(nil, pos, node)
+        update_notenode_infotext(pos, node, instrument)
         -- have protection on place
         if depends.exile then
             local meta = core.get_meta(pos)
@@ -1445,7 +1455,7 @@ core.register_node("tph_notenode:device", devicedef)
 if NLC then
     -- I can't figure out nodecore crafting so this remains unfinished
     if depends.nodecore then
-        
+
     elseif depends.exile then
         -- instrumental device crafting
         crafting.register_recipe({
